@@ -15,11 +15,13 @@ RUN apt-get update && apt-get install -y \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
 ENV PATH="/uv/bin:${PATH}"
+# Ensure uv uses a predictable environment path outside the mounted /app
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies
+# Install dependencies into /opt/venv
 RUN uv sync --frozen --no-cache
 
 # Copy the rest of the application

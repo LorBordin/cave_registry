@@ -283,6 +283,7 @@ All endpoints under `/api/v1/`.
 | `GET` | `/caves/` | JSON list | Supports `?search=`, `?ordering=`, `?page=` |
 | `GET` | `/caves/geojson/` | GeoJSON FeatureCollection | All published caves. Used by Leaflet. Optionally filter by `?bbox=minLng,minLat,maxLng,maxLat` for viewport loading. |
 | `GET` | `/caves/:id/` | JSON object | Single cave detail (stubbed for future Cave Detail page) |
+| `GET` | `/caves/:id/media/` | JSON list | List of media objects for that cave. |
 
 ### Private (session auth required)
 
@@ -297,13 +298,15 @@ All endpoints under `/api/v1/`.
 | `POST` | `/caves/:id/media/` | Upload a media file (multipart/form-data) |
 | `DELETE` | `/media/:id/` | Delete a media file |
 
+Note: `:id` in private endpoints refers to `registry_id`, since the public detail endpoints uses `registry_id`.
+
 ---
 
 ## 9. Frontend Component Map
 
 ```
 App.tsx
-├── <Navbar />                  # Logo, nav links, login/logout button
+├── <Navbar />                  # Logo, nav links, login/logout button, login/logout state
 ├── <ProtectedRoute />          # Wraps private pages, redirects to /login if not authed
 │
 ├── pages/Landing.tsx
@@ -312,7 +315,7 @@ App.tsx
 │
 ├── pages/CaveList.tsx
 │   ├── <SearchBar />
-│   ├── <SortableTable />       # Columns: ID, Name, Municipality, Elevation, Length, Depth↑, Depth↓
+│   ├── <SortableTable />       # ID, Name, Elevation, Length, Depth↑, Depth↓
 │   └── <Pagination />
 │
 ├── pages/CaveMap.tsx

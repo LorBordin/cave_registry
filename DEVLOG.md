@@ -135,3 +135,47 @@ docker-compose.yml
 **Deviations from spec:** None
 **Assumptions:** None
 **Next session notes:** Phase 3 will focus on Authentication and the Private Dashboard.
+
+## [2026-05-08 13:00] Bugfix — 502 Bad Gateway / Slow Startup
+**Files:**
+backend/Dockerfile
+docker-compose.yml
+backend/.python-version
+backend/caves/views.py
+**Deviations from spec:** None
+**Assumptions:** The 502 error was caused by the backend taking too long to start (downloading Python/deps at runtime) because the host volume mount was interfering with the container's virtual environment.
+**Next session notes:** Backend startup is now optimized and health-checked.
+
+## [2026-05-08 14:00] Phase 3a — Auth endpoints
+**Files:**
+backend/caves/views.py
+backend/config/urls.py
+**Deviations from spec:** CSRF exemption is used for login/logout/me endpoints to simplify PoC development, as specified. This is a known security limitation to be addressed before any public deployment.
+**Assumptions:** Standard Django Session Authentication is used.
+**Next session notes:** None
+
+## [2026-05-08 14:10] Phase 3a — CaveWriteSerializer
+**Files:**
+backend/caves/serializers.py
+**Deviations from spec:** None
+**Assumptions:** registry_id is set to read-only in CaveWriteSerializer when an instance is present (i.e., during update).
+**Next session notes:** None
+
+## [2026-05-08 14:30] Phase 3a — Private Cave and Media Endpoints
+**Files:**
+backend/caves/models.py
+backend/caves/views.py
+backend/caves/urls.py
+backend/config/urls.py
+backend/config/settings.py
+**Deviations from spec:** None
+**Assumptions:** File cleanup for CaveMedia is handled by overriding perform_destroy in the views. Dynamic upload path for media files is implemented using a function in the model.
+**Next session notes:** All Phase 3a backend tasks are complete and verified.
+
+## [2026-05-08 15:00] Phase 3a — Verification & Linting
+**Files:**
+backend/caves/views.py
+backend/caves/serializers.py
+**Deviations from spec:** Added `file` field to `CaveMediaSerializer` to allow uploads.
+**Assumptions:** Verified all 12 manual steps using curl. All Python code passes ruff check and format.
+**Next session notes:** Ready for Phase 3b (Frontend Dashboard & Auth).

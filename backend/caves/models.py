@@ -36,6 +36,10 @@ class Cave(models.Model):
         return f"{self.registry_id} - {self.name}"
 
 
+def cave_media_path(instance, filename):
+    return f"caves/{instance.cave.registry_id}/{filename}"
+
+
 class CaveMedia(models.Model):
     MEDIA_TYPE_CHOICES = [
         ("photo", "Photo"),
@@ -44,7 +48,7 @@ class CaveMedia(models.Model):
     ]
 
     cave = models.ForeignKey(Cave, on_delete=models.CASCADE, related_name="media")
-    file = models.FileField(upload_to="caves/")
+    file = models.FileField(upload_to=cave_media_path)
     media_type = models.CharField(max_length=20, choices=MEDIA_TYPE_CHOICES)
     caption = models.CharField(max_length=255, blank=True, null=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
