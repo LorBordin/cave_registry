@@ -172,18 +172,11 @@ backend/config/settings.py
 **Assumptions:** File cleanup for CaveMedia is handled by overriding perform_destroy in the views. Dynamic upload path for media files is implemented using a function in the model.
 **Next session notes:** All Phase 3a backend tasks are complete and verified.
 
-## [2026-05-08 17:00] Phase 3b — Completed
+## [2026-05-08 17:15] Phase 3b — Bug Fixes
 **Files:**
-frontend/src/api/auth.ts
 frontend/src/api/caves.ts
-frontend/src/context/AuthContext.tsx
-frontend/src/main.tsx
-frontend/src/components/ProtectedRoute.tsx
-frontend/src/App.tsx
-frontend/src/components/Navbar.tsx
-frontend/src/pages/Login.tsx
-frontend/src/pages/Dashboard.tsx
 frontend/src/pages/CaveForm.tsx
-**Deviations from spec:** Fixed several TypeScript lint/type errors identified during build (any usage, unused variables, type-only imports).
-**Assumptions:** Session authentication is working as verified in Phase 3a; frontend correctly sends `credentials: 'include'`.
-**Next session notes:** Phase 3 is fully complete. Phase 4 will focus on the public Landing page and global style polish.
+frontend/src/pages/Dashboard.tsx
+**Deviations from spec:** Fixed `encodeURIComponent` missing in API calls for `registry_id`, which caused issues with spaces in IDs. Improved loading spinner to be full-screen.
+**Assumptions:** CSRF is currently handled by the dev environment; if "nothing happens" persists, CSRF middleware might need explicit headers.
+**Next session notes:** Verification of fixes is required.

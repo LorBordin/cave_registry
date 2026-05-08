@@ -53,6 +53,10 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export interface ApiError extends Error {
+  data?: Record<string, string[]>;
+}
+
 export async function fetchCaves(params: { search?: string; ordering?: string; page?: number }): Promise<PaginatedResponse<Cave>> {
   const query = new URLSearchParams();
   if (params.search) query.append('search', params.search);
@@ -85,15 +89,11 @@ export async function fetchCaveGeoJson(): Promise<GeoJSON.FeatureCollection> {
 }
 
 export async function fetchCave(registryId: string): Promise<Cave> {
-  const response = await fetch(`/api/v1/caves/${registryId}/`);
+  const response = await fetch(`/api/v1/caves/${encodeURIComponent(registryId)}/`);
   if (!response.ok) {
     throw new Error('Failed to fetch cave detail');
   }
   return response.json();
-}
-
-export interface ApiError extends Error {
-  data?: Record<string, string[]>;
 }
 
 export async function createCave(data: CaveWritePayload): Promise<Cave> {
@@ -115,7 +115,7 @@ export async function createCave(data: CaveWritePayload): Promise<Cave> {
 }
 
 export async function updateCave(registryId: string, data: Partial<CaveWritePayload>): Promise<Cave> {
-  const response = await fetch(`/api/v1/caves/${registryId}/`, {
+  const response = await fetch(`/api/v1/caves/${encodeURIComponent(registryId)}/`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export async function updateCave(registryId: string, data: Partial<CaveWritePayl
 }
 
 export async function deleteCave(registryId: string): Promise<void> {
-  const response = await fetch(`/api/v1/caves/${registryId}/`, {
+  const response = await fetch(`/api/v1/caves/${encodeURIComponent(registryId)}/`, {
     method: 'DELETE',
     credentials: 'include',
   });
@@ -143,7 +143,7 @@ export async function deleteCave(registryId: string): Promise<void> {
 }
 
 export async function fetchCaveMedia(registryId: string): Promise<CaveMedia[]> {
-  const response = await fetch(`/api/v1/caves/${registryId}/media/`, {
+  const response = await fetch(`/api/v1/caves/${encodeURIComponent(registryId)}/media/`, {
     credentials: 'include',
   });
   if (!response.ok) {
@@ -153,7 +153,7 @@ export async function fetchCaveMedia(registryId: string): Promise<CaveMedia[]> {
 }
 
 export async function uploadMedia(registryId: string, formData: FormData): Promise<CaveMedia> {
-  const response = await fetch(`/api/v1/caves/${registryId}/media/`, {
+  const response = await fetch(`/api/v1/caves/${encodeURIComponent(registryId)}/media/`, {
     method: 'POST',
     body: formData,
     credentials: 'include',

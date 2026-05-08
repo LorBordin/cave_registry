@@ -12,8 +12,8 @@ const CaveForm: React.FC = () => {
     registry_id: '',
     plaque_number: '',
     name: '',
-    latitude: 0,
-    longitude: 0,
+    latitude: 46.0, // Default to a reasonable value for the region
+    longitude: 11.0,
     elevation: null,
     length: null,
     depth_positive: null,
@@ -41,6 +41,7 @@ const CaveForm: React.FC = () => {
   useEffect(() => {
     if (isEditMode && id) {
       const loadData = async () => {
+        setIsLoading(true);
         try {
           const [caveData, mediaData] = await Promise.all([
             cavesApi.fetchCave(id),
@@ -51,8 +52,8 @@ const CaveForm: React.FC = () => {
             registry_id: caveData.registry_id,
             plaque_number: caveData.plaque_number || '',
             name: caveData.name,
-            latitude: caveData.latitude || 0,
-            longitude: caveData.longitude || 0,
+            latitude: caveData.latitude ?? 0,
+            longitude: caveData.longitude ?? 0,
             elevation: caveData.elevation,
             length: caveData.length,
             depth_positive: caveData.depth_positive,
@@ -65,8 +66,10 @@ const CaveForm: React.FC = () => {
             is_published: caveData.is_published,
           });
           setMedia(mediaData);
-        } catch {
-          setError('Errore durante il caricamento dei dati della grotta.');
+          setError(null);
+        } catch (err) {
+          console.error('Error loading cave data:', err);
+          setError('Errore durante il caricamento dei dati della grotta. Verifica che il codice catasto sia corretto.');
         } finally {
           setIsLoading(false);
         }
@@ -101,11 +104,12 @@ const CaveForm: React.FC = () => {
       }
       navigate('/dashboard');
     } catch (err: unknown) {
+      console.error('Error saving cave:', err);
       const apiErr = err as ApiError;
       if (apiErr.data) {
         setFieldErrors(apiErr.data);
       } else {
-        setError('Errore durante il salvataggio della grotta.');
+        setError('Errore durante il salvataggio della grotta. Riprova più tardi.');
       }
     } finally {
       setIsSubmitting(false);
@@ -130,7 +134,8 @@ const CaveForm: React.FC = () => {
       // Reset file input
       const fileInput = document.getElementById('media-file') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-    } catch {
+    } catch (err) {
+      console.error('Error uploading media:', err);
       alert('Errore durante l\'upload del file.');
     } finally {
       setIsUploading(false);
@@ -143,21 +148,23 @@ const CaveForm: React.FC = () => {
     try {
       await cavesApi.deleteMedia(mediaId);
       setMedia(prev => prev.filter(m => m.id !== mediaId));
-    } catch {
+    } catch (err) {
+      console.error('Error deleting media:', err);
       alert('Errore durante l\'eliminazione del file.');
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+      <div className="fixed inset-0 bg-slate-950/50 flex flex-col items-center justify-center z-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-500 mb-4"></div>
+        <p className="text-teal-400 font-medium">Caricamento in corso...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
+    <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">
           {isEditMode ? `Modifica: ${formData.name}` : 'Nuova grotta'}
@@ -235,6 +242,9 @@ const CaveForm: React.FC = () => {
               className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
               required
             />
+            {fieldErrors.latitude && (
+              <p className="text-red-400 text-xs mt-1">{fieldErrors.latitude[0]}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Longitudine</label>
@@ -247,6 +257,9 @@ const CaveForm: React.FC = () => {
               className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
               required
             />
+            {fieldErrors.longitude && (
+              <p className="text-red-400 text-xs mt-1">{fieldErrors.longitude[0]}</p>
+            )}
           </div>
 
           {/* Physical specs */}
@@ -371,7 +384,7 @@ const CaveForm: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-8 py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-700 rounded-md font-bold text-white transition-colors"
+            className="px-8 py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-700 rounded-md font-bold text-white transition-colors min-w-[160px]"
           >
             {isSubmitting ? 'Salvataggio...' : 'Salva Grotta'}
           </button>

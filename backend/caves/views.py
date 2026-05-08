@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, filters, pagination, permissions
+from rest_framework.authentication import SessionAuthentication
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Cave, CaveMedia
 from .serializers import (
@@ -14,6 +15,10 @@ from .serializers import (
     CaveMediaSerializer,
 )
 
+# Custom Session Authentication that skips CSRF for PoC
+class UnsafeSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -66,6 +71,7 @@ class CavePagination(pagination.PageNumberPagination):
 class CaveListView(generics.ListCreateAPIView):
     queryset = Cave.objects.filter(is_published=True).order_by("registry_id")
     pagination_class = CavePagination
+    authentication_classes = [UnsafeSessionAuthentication]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -94,6 +100,7 @@ class CaveListView(generics.ListCreateAPIView):
 
 class CaveDetailView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "registry_id"
+    authentication_classes = [UnsafeSessionAuthentication]
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -122,6 +129,7 @@ class CaveAdminListView(generics.ListAPIView):
     queryset = Cave.objects.all()
     serializer_class = CaveSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [UnsafeSessionAuthentication]
     pagination_class = None
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["name", "registry_id", "elevation"]
@@ -136,6 +144,7 @@ class CaveGeoJsonView(generics.ListAPIView):
 class CaveMediaListView(generics.ListCreateAPIView):
     serializer_class = CaveMediaSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [UnsafeSessionAuthentication]
 
     def get_queryset(self):
         cave = get_object_or_404(Cave, registry_id=self.kwargs["registry_id"])
@@ -150,6 +159,7 @@ class CaveMediaDeleteView(generics.DestroyAPIView):
     queryset = CaveMedia.objects.all()
     serializer_class = CaveMediaSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [UnsafeSessionAuthentication]
     lookup_field = "id"
 
     def perform_destroy(self, instance):

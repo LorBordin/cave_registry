@@ -14,7 +14,8 @@ const Dashboard: React.FC = () => {
       try {
         const data = await cavesApi.fetchAllCaves();
         setCaves(data);
-      } catch {
+      } catch (err) {
+        console.error('Error loading caves:', err);
         setError('Errore durante il caricamento delle grotte.');
       } finally {
         setIsLoading(false);
@@ -33,7 +34,8 @@ const Dashboard: React.FC = () => {
       await cavesApi.deleteCave(registryId);
       setCaves(caves.filter(c => c.registry_id !== registryId));
       setDeleteError(null);
-    } catch {
+    } catch (err) {
+      console.error('Error deleting cave:', err);
       setDeleteError('Errore durante l\'eliminazione della grotta.');
     }
   };
@@ -50,8 +52,8 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8 px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold">Dashboard Amministrativa</h1>
         <Link
           to="/dashboard/caves/new"
@@ -86,8 +88,8 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Cave Table */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl overflow-hidden">
-        <table className="w-full text-left">
+      <div className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
+        <table className="w-full text-left min-w-[600px]">
           <thead className="bg-slate-900 border-b border-slate-700">
             <tr>
               <th className="px-6 py-4 text-sm font-semibold text-slate-300">Codice Catasto</th>
@@ -116,7 +118,7 @@ const Dashboard: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 text-right space-x-2">
                   <Link
-                    to={`/dashboard/caves/${cave.registry_id}/edit`}
+                    to={`/dashboard/caves/${encodeURIComponent(cave.registry_id)}/edit`}
                     className="text-teal-400 hover:text-teal-300 text-sm font-medium"
                   >
                     Modifica
