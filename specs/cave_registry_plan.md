@@ -312,7 +312,7 @@ App.tsx
 │
 ├── pages/CaveList.tsx
 │   ├── <SearchBar />
-│   ├── <SortableTable />       # Columns: ID, Name, Municipality, Elevation, Length, Depth
+│   ├── <SortableTable />       # Columns: ID, Name, Municipality, Elevation, Length, Depth↑, Depth↓
 │   └── <Pagination />
 │
 ├── pages/CaveMap.tsx
@@ -341,7 +341,7 @@ App.tsx
 - **Tile provider:** OpenStreetMap (`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`). Free, no API key, good coverage of Trentino. Consider also adding a satellite layer toggle using ESRI World Imagery (free, no key required for reasonable usage).
 - **Clustering:** Use `leaflet.markercluster` — handles hundreds of markers without performance issues.
 - **Data loading:** On map mount, fetch `/api/v1/caves/geojson/` once and render all markers. For PoC this is fine; add bbox filtering later if the dataset grows large.
-- **Cave popup:** Show `registry_id`, `name`, `elevation`, `municipality`. Include a "Dettagli →" link (disabled/placeholder for PoC).
+- **Cave popup:** Show `registry_id`, `name`, `elevation`. Include a "Dettagli →" link (disabled/placeholder for PoC).
 - **Coordinate input in forms:** Two plain number inputs (latitude, longitude, WGS84 decimal degrees). Optionally add a small embedded Leaflet map where the admin can click to place the pin — this is a nice UX touch and not difficult with React-Leaflet.
 
 ---
@@ -408,7 +408,7 @@ createsuperuser: docker compose exec backend uv run python manage.py createsuper
 import:          docker compose exec backend uv run python manage.py import_caves --source ../data/
 shell:           docker compose exec backend uv run python manage.py shell
 test:            docker compose exec backend uv run python manage.py test
-lint:            cd backend && uv run ruff check . && cd ../frontend && npm run lint
+lint:            cd backend && uv run ruff check . && uv run ruff format --check . # frontend lint to be added in Phase 4
 ```
 
 ### Pre-commit hooks
