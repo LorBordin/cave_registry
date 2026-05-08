@@ -431,7 +431,7 @@ repos:
 ## 12. Development Roadmap
 
 ### Phase 1 — Foundation
-- [ ] Initialise repo with `data/` folder, Docker Compose, `uv` backend, Vite frontend
+- [ ] Initialise repo with `data/` folder, Docker Compose, `uv` backend
 - [ ] Add `.gitignore` (media, .env, __pycache__, .venv)
 - [ ] Define `Cave` and `CaveMedia` models per schema in section 6, run migrations
 - [ ] Enable Django Admin for `Cave`
