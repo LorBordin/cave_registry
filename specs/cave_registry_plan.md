@@ -70,7 +70,7 @@ All tools are **free and open source**.
 | **Auth** | Django Session Auth (cookie-based) | Simplest correct choice for PoC. No JWT complexity. |
 | **Media storage** | Django `MEDIA_ROOT` (local filesystem) | Sufficient for PoC. Swap to S3-compatible later if needed. |
 | **Dev environment** | Docker Compose | One command to start postgres+postgis, django, and vite dev server. |
-| **Code quality** | `ruff` + `black` (Python), `eslint` + `prettier` (JS/TS) | Enforced via pre-commit hooks. |
+| **Code quality** | `ruff` (Python) - ruff handles both linting and formatting, `eslint` + `prettier` (JS/TS) | Enforced via pre-commit hooks. |
 
 ---
 
@@ -357,7 +357,7 @@ curl -Lsf https://astral.sh/uv/install.sh | sh
 # Create project and install deps
 uv init backend
 cd backend
-uv add django djangorestframework psycopg2-binary djangorestframework-gis Pillow
+uv add django djangorestframework psycopg[binary] djangorestframework-gis Pillow
 
 # Run commands
 uv run python manage.py migrate
