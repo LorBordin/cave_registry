@@ -4,6 +4,9 @@ import Landing from './pages/Landing';
 import CaveList from './pages/CaveList';
 import CaveMap from './pages/CaveMap';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import CaveForm from './pages/CaveForm';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const Layout = () => {
   return (
@@ -24,6 +27,13 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/caves" element={<CaveList />} />
           <Route path="/login" element={<Login />} />
+
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/caves/new" element={<CaveForm />} />
+            <Route path="/dashboard/caves/:id/edit" element={<CaveForm />} />
+          </Route>
         </Route>
         <Route path="/map" element={<CaveMap />} />
       </Routes>

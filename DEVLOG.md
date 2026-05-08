@@ -172,10 +172,18 @@ backend/config/settings.py
 **Assumptions:** File cleanup for CaveMedia is handled by overriding perform_destroy in the views. Dynamic upload path for media files is implemented using a function in the model.
 **Next session notes:** All Phase 3a backend tasks are complete and verified.
 
-## [2026-05-08 15:00] Phase 3a — Verification & Linting
+## [2026-05-08 17:00] Phase 3b — Completed
 **Files:**
-backend/caves/views.py
-backend/caves/serializers.py
-**Deviations from spec:** Added `file` field to `CaveMediaSerializer` to allow uploads.
-**Assumptions:** Verified all 12 manual steps using curl. All Python code passes ruff check and format.
-**Next session notes:** Ready for Phase 3b (Frontend Dashboard & Auth).
+frontend/src/api/auth.ts
+frontend/src/api/caves.ts
+frontend/src/context/AuthContext.tsx
+frontend/src/main.tsx
+frontend/src/components/ProtectedRoute.tsx
+frontend/src/App.tsx
+frontend/src/components/Navbar.tsx
+frontend/src/pages/Login.tsx
+frontend/src/pages/Dashboard.tsx
+frontend/src/pages/CaveForm.tsx
+**Deviations from spec:** Fixed several TypeScript lint/type errors identified during build (any usage, unused variables, type-only imports).
+**Assumptions:** Session authentication is working as verified in Phase 3a; frontend correctly sends `credentials: 'include'`.
+**Next session notes:** Phase 3 is fully complete. Phase 4 will focus on the public Landing page and global style polish.
