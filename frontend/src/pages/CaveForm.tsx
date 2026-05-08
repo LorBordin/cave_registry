@@ -4,7 +4,12 @@ import * as cavesApi from '../api/caves';
 import type { CaveWritePayload, CaveMedia, ApiError } from '../api/caves';
 
 const CaveForm: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  const id = params.id;
+  
+  console.log('CaveForm component mounted. Params object:', params);
+  console.log('Extracted ID:', id);
+  
   const isEditMode = !!id;
   const navigate = useNavigate();
 
@@ -12,7 +17,7 @@ const CaveForm: React.FC = () => {
     registry_id: '',
     plaque_number: '',
     name: '',
-    latitude: 46.0, // Default to a reasonable value for the region
+    latitude: 46.0,
     longitude: 11.0,
     elevation: null,
     length: null,
@@ -32,21 +37,23 @@ const CaveForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  // Media upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<'photo' | 'survey_pdf' | 'survey_image'>('photo');
   const [caption, setCaption] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
+    console.log('Effect triggered. isEditMode:', isEditMode, 'id:', id);
     if (isEditMode && id) {
       const loadData = async () => {
         setIsLoading(true);
+        console.log('Fetching data for registry ID:', id);
         try {
           const [caveData, mediaData] = await Promise.all([
             cavesApi.fetchCave(id),
             cavesApi.fetchCaveMedia(id)
           ]);
+          console.log('Data fetched successfully:', caveData);
           
           setFormData({
             registry_id: caveData.registry_id,

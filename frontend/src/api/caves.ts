@@ -149,7 +149,9 @@ export async function fetchCaveMedia(registryId: string): Promise<CaveMedia[]> {
   if (!response.ok) {
     throw new Error('Failed to fetch cave media');
   }
-  return response.json();
+  const data = await response.json();
+  // Handle both paginated and non-paginated responses
+  return Array.isArray(data) ? data : (data.results || []);
 }
 
 export async function uploadMedia(registryId: string, formData: FormData): Promise<CaveMedia> {
