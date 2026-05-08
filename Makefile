@@ -20,4 +20,6 @@ test:
 
 lint:
 	cd backend && uv run ruff check . && uv run ruff format --check .
+	cd frontend && npm run lint
+
 

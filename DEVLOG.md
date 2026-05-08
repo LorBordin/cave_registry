@@ -59,9 +59,79 @@ backend/pyproject.toml
 **Assumptions:** None
 **Next session notes:** None
 
-## [2026-05-08 10:40] Foundation — Docker volume fix
+## [2026-05-08 10:45] Phase 2 — Backend dependencies
 **Files:**
-docker-compose.yml
-**Deviations from spec:** Mounted ./data to /data in the backend container to allow the import command to access source CSVs.
-**Assumptions:** None
+backend/pyproject.toml
+backend/uv.lock
+**Deviations from spec:** None
+**Assumptions:** django-filter and django-cors-headers are compatible with Django 5.x.
 **Next session notes:** None
+
+## [2026-05-08 11:00] Phase 2 — Backend implementation (Serializers, Views, URLs)
+**Files:**
+backend/caves/serializers.py
+backend/caves/views.py
+backend/caves/urls.py
+backend/config/urls.py
+backend/config/settings.py
+**Deviations from spec:** None
+**Assumptions:** registry_id is used as the lookup field for detail views.
+**Next session notes:** None
+
+## [2026-05-08 11:15] Phase 2 — API Verification
+**Files:**
+None
+**Deviations from spec:** None
+**Assumptions:** Tested endpoints via curl and confirmed correct JSON/GeoJSON structure.
+**Next session notes:** None
+
+## [2026-05-08 11:30] Phase 2 — Frontend initialization
+**Files:**
+frontend/
+docker-compose.yml
+frontend/Dockerfile
+frontend/tailwind.config.js
+frontend/postcss.config.js
+frontend/vite.config.ts
+**Deviations from spec:** Used Tailwind CSS v3 as specified in the spec, even though Vite might have defaulted to v4.
+**Assumptions:** Using node:23-slim for the frontend Docker image.
+**Next session notes:** None
+
+## [2026-05-08 11:45] Phase 2 — Frontend Routing and Layout
+**Files:**
+frontend/src/App.tsx
+frontend/src/components/Navbar.tsx
+frontend/src/pages/Landing.tsx
+frontend/src/pages/Login.tsx
+frontend/src/pages/CaveList.tsx
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Map page is excluded from the main Layout wrapper to allow for full-screen rendering.
+**Next session notes:** None
+
+## [2026-05-08 12:15] Phase 2 — CaveList and CaveMap Implementation
+**Files:**
+frontend/src/api/caves.ts
+frontend/src/pages/CaveList.tsx
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Using `leaflet.markercluster` for marker clustering as specified.
+**Next session notes:** None
+
+## [2026-05-08 12:25] Phase 2 — Linting and Formatting
+**Files:**
+backend/caves/views.py
+backend/config/urls.py
+frontend/src/pages/CaveList.tsx
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Fixed ESLint and Ruff warnings to ensure CI compliance.
+**Next session notes:** None
+
+## [2026-05-08 12:30] Phase 2 — Completed
+**Files:**
+Makefile
+docker-compose.yml
+**Deviations from spec:** None
+**Assumptions:** None
+**Next session notes:** Phase 3 will focus on Authentication and the Private Dashboard.
