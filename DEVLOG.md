@@ -172,11 +172,9 @@ backend/config/settings.py
 **Assumptions:** File cleanup for CaveMedia is handled by overriding perform_destroy in the views. Dynamic upload path for media files is implemented using a function in the model.
 **Next session notes:** All Phase 3a backend tasks are complete and verified.
 
-## [2026-05-08 17:15] Phase 3b — Bug Fixes
+## [2026-05-08 17:45] Phase 3b — CaveForm mandatory fields and label update
 **Files:**
-frontend/src/api/caves.ts
 frontend/src/pages/CaveForm.tsx
-frontend/src/pages/Dashboard.tsx
-**Deviations from spec:** Fixed `encodeURIComponent` missing in API calls for `registry_id`, which caused issues with spaces in IDs. Improved loading spinner to be full-screen.
-**Assumptions:** CSRF is currently handled by the dev environment; if "nothing happens" persists, CSRF middleware might need explicit headers.
-**Next session notes:** Verification of fixes is required.
+**Deviations from spec:** Made `geology` and `last_survey_date` mandatory in the frontend to match backend requirements. Renamed `last_survey_date` label to "Data ultima modifica".
+**Assumptions:** None
+**Next session notes:** Phase 3b is complete.

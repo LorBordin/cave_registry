@@ -6,10 +6,6 @@ import type { CaveWritePayload, CaveMedia, ApiError } from '../api/caves';
 const CaveForm: React.FC = () => {
   const params = useParams();
   const id = params.id;
-  
-  console.log('CaveForm component mounted. Params object:', params);
-  console.log('Extracted ID:', id);
-  
   const isEditMode = !!id;
   const navigate = useNavigate();
 
@@ -43,17 +39,14 @@ const CaveForm: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    console.log('Effect triggered. isEditMode:', isEditMode, 'id:', id);
     if (isEditMode && id) {
       const loadData = async () => {
         setIsLoading(true);
-        console.log('Fetching data for registry ID:', id);
         try {
           const [caveData, mediaData] = await Promise.all([
             cavesApi.fetchCave(id),
             cavesApi.fetchCaveMedia(id)
           ]);
-          console.log('Data fetched successfully:', caveData);
           
           setFormData({
             registry_id: caveData.registry_id,
@@ -95,8 +88,15 @@ const CaveForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Explicit validation check to trigger browser popup
+    if (!e.currentTarget.checkValidity()) {
+      e.currentTarget.reportValidity();
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     setFieldErrors({});
@@ -138,7 +138,6 @@ const CaveForm: React.FC = () => {
       setMedia(prev => [...prev, newMedia]);
       setUploadFile(null);
       setCaption('');
-      // Reset file input
       const fileInput = document.getElementById('media-file') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
     } catch (err) {
@@ -190,11 +189,13 @@ const CaveForm: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-8 space-y-6">
+      <form onSubmit={handleSubmit} noValidate={false} className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-8 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Registry ID */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Codice catasto</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Codice catasto <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="registry_id"
@@ -223,7 +224,9 @@ const CaveForm: React.FC = () => {
 
           {/* Name */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-300 mb-1">Nome</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Nome <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="name"
@@ -239,7 +242,9 @@ const CaveForm: React.FC = () => {
 
           {/* Coordinates */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Latitudine</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Latitudine <span className="text-red-500">*</span>
+            </label>
             <input
               type="number"
               step="0.000001"
@@ -254,7 +259,9 @@ const CaveForm: React.FC = () => {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Longitudine</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Longitudine <span className="text-red-500">*</span>
+            </label>
             <input
               type="number"
               step="0.000001"
@@ -335,12 +342,15 @@ const CaveForm: React.FC = () => {
 
           {/* Geology & Date */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Geologia</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Geologia <span className="text-red-500">*</span>
+            </label>
             <select
               name="geology"
               value={formData.geology || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              required
             >
               <option value="">- Seleziona -</option>
               <option value="limestone">Calcare</option>
@@ -348,16 +358,25 @@ const CaveForm: React.FC = () => {
               <option value="gypsum">Gesso</option>
               <option value="other">Altro</option>
             </select>
+            {fieldErrors.geology && (
+              <p className="text-red-400 text-xs mt-1">{fieldErrors.geology[0]}</p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Data ultimo rilievo</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Data ultima modifica <span className="text-red-500">*</span>
+            </label>
             <input
               type="date"
               name="last_survey_date"
               value={formData.last_survey_date || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500 text-white"
+              required
             />
+            {fieldErrors.last_survey_date && (
+              <p className="text-red-400 text-xs mt-1">{fieldErrors.last_survey_date[0]}</p>
+            )}
           </div>
 
           {/* Description */}
@@ -406,7 +425,6 @@ const CaveForm: React.FC = () => {
           
           <div className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl overflow-hidden">
             <div className="p-6 space-y-6">
-              {/* Media List */}
               <div className="space-y-4">
                 {media.length === 0 ? (
                   <p className="text-slate-500 text-sm">Nessun file caricato.</p>
@@ -446,7 +464,6 @@ const CaveForm: React.FC = () => {
                 )}
               </div>
 
-              {/* Upload Form */}
               <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-slate-900/50 rounded-lg border border-dashed border-slate-600">
                 <div className="md:col-span-1">
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Tipo media</label>
