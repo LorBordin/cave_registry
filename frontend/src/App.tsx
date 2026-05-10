@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import CaveList from './pages/CaveList';
 import CaveMap from './pages/CaveMap';
+import CaveDetail from './pages/CaveDetail';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CaveForm from './pages/CaveForm';
@@ -10,9 +11,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 const Layout = () => {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="h-screen bg-slate-900 text-white flex flex-col overflow-hidden">
       <Navbar />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
     </div>
@@ -26,7 +27,9 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Landing />} />
           <Route path="/caves" element={<CaveList />} />
+          <Route path="/caves/:id" element={<CaveDetail />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/map" element={<CaveMap />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
@@ -35,7 +38,6 @@ function App() {
             <Route path="/dashboard/caves/:id/edit" element={<CaveForm />} />
           </Route>
         </Route>
-        <Route path="/map" element={<CaveMap />} />
       </Routes>
     </Router>
   );

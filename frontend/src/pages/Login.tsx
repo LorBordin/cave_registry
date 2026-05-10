@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { LockClosedIcon } from '@heroicons/react/24/solid';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -22,37 +23,43 @@ const Login: React.FC = () => {
     try {
       await login(username, password);
       navigate('/dashboard');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Errore durante il login. Riprova.';
-      setError(message);
+    } catch {
+      setError('Credenziali non valide. Riprova.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] p-4">
-      <div className="w-full max-w-md bg-slate-800 rounded-lg shadow-xl p-8 border border-slate-700">
-        <h1 className="text-3xl font-bold mb-6 text-center text-teal-400">Accedi</h1>
+    <div className="min-h-[calc(100vh-64px)] bg-slate-900 flex items-center justify-center px-4">
+      <div className="bg-slate-800 rounded-xl p-8 w-full max-w-sm shadow-2xl border border-slate-700">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center mb-4">
+            <LockClosedIcon className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Accedi</h1>
+          <p className="text-slate-400 text-sm mt-1 text-center">Gestione Catasto Grotte</p>
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="username" className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 ml-1">
               Username
             </label>
             <input
               id="username"
               type="text"
               required
+              autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-white"
+              className="w-full bg-slate-900 border border-slate-600 text-white placeholder-slate-500 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
               placeholder="Inserisci username"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 ml-1">
               Password
             </label>
             <input
@@ -61,13 +68,13 @@ const Login: React.FC = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-white"
+              className="w-full bg-slate-900 border border-slate-600 text-white placeholder-slate-500 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
               placeholder="Inserisci password"
             />
           </div>
 
           {error && (
-            <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+            <div className="text-red-400 text-sm text-center bg-red-900/20 border border-red-900/50 py-2.5 rounded-lg">
               {error}
             </div>
           )}
@@ -75,7 +82,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-md font-bold text-white transition-colors"
+            className="w-full py-3 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg shadow-teal-500/10 transition-all mt-2"
           >
             {isSubmitting ? 'Accesso in corso...' : 'Accedi'}
           </button>

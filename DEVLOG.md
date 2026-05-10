@@ -172,6 +172,105 @@ backend/config/settings.py
 **Assumptions:** File cleanup for CaveMedia is handled by overriding perform_destroy in the views. Dynamic upload path for media files is implemented using a function in the model.
 **Next session notes:** All Phase 3a backend tasks are complete and verified.
 
+## [2026-05-10 12:45] Enhancement — Map popup and Terminology
+**Files:**
+frontend/src/pages/CaveMap.tsx
+frontend/src/pages/CaveList.tsx
+frontend/src/pages/Dashboard.tsx
+frontend/src/pages/CaveForm.tsx
+frontend/src/pages/CaveDetail.tsx
+**Deviations from spec:** Clarified that "registry_id" is the "Numero di catasto" across all views.
+**Assumptions:** Added length, depth_positive, and depth_negative to the map popup as requested.
+**Next session notes:** Phase 4 complete.
+
+## [2026-05-10 12:30] Bugfix — Map visibility and Layout height
+**Files:**
+frontend/src/App.tsx
+**Deviations from spec:** None
+**Assumptions:** The map was invisible because Leaflet requires a container with a defined height. Changed global Layout to `h-screen` with `overflow-y-auto` main content to satisfy this while keeping the Navbar sticky.
+**Next session notes:** None
+
+## [2026-05-10 12:20] Bugfix — Sync Docker dependencies
+**Files:**
+docker-compose.yml
+**Deviations from spec:** None
+**Assumptions:** The import error was caused by the anonymous volume `/app/node_modules` in the frontend container not having the `@heroicons/react` package installed, even though it was present on the host. Synchronized it by running `npm install` inside the container.
+**Next session notes:** None
+
+## [2026-05-10 12:10] Bugfix — CaveMap syntax error
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Fixed closing tags in the component's JSX structure.
+**Next session notes:** None
+
+## [2026-05-10 12:00] Phase 4 — Cave Detail stub
+**Files:**
+frontend/src/pages/CaveDetail.tsx
+frontend/src/App.tsx
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Refactored App.tsx to provide a global Navbar layout while keeping Map full-screen.
+**Assumptions:** None
+**Next session notes:** Phase 4 complete. Visual polish and core routes for PoC are ready.
+
+## [2026-05-10 11:45] Phase 4 — CaveForm polish
+**Files:**
+frontend/src/pages/CaveForm.tsx
+**Deviations from spec:** None
+**Assumptions:** None
+**Next session notes:** None
+
+## [2026-05-10 11:30] Phase 4 — Dashboard polish
+**Files:**
+frontend/src/pages/Dashboard.tsx
+**Deviations from spec:** None
+**Assumptions:** None
+**Next session notes:** None
+
+## [2026-05-10 11:15] Phase 4 — Login page polish
+**Files:**
+frontend/src/pages/Login.tsx
+**Deviations from spec:** Added a lock icon for visual emphasis.
+**Assumptions:** None
+**Next session notes:** None
+
+## [2026-05-10 11:00] Phase 4 — CaveMap polish
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Included Navbar in the map page for consistent navigation. Added ESRI Satellite layer toggle.
+**Assumptions:** None
+**Next session notes:** None
+
+## [2026-05-10 10:45] Phase 4 — CaveList polish
+**Files:**
+frontend/src/pages/CaveList.tsx
+**Deviations from spec:** Added links to (stubbed) detail page in the table rows.
+**Assumptions:** None
+**Next session notes:** None
+
+## [2026-05-10 10:30] Phase 4 — Landing page
+**Files:**
+frontend/src/pages/Landing.tsx
+**Deviations from spec:** Used a high-quality Unsplash image for the hero background.
+**Assumptions:** Total cave count "censite" is the same as "pubblicate" since no public endpoint for all caves exists and PoC usually has all published.
+**Next session notes:** None
+
+## [2026-05-10 10:15] Phase 4 — Navbar polish
+**Files:**
+frontend/src/components/Navbar.tsx
+**Deviations from spec:** Added Heroicons for visual polish.
+**Assumptions:** None
+**Next session notes:** None
+
+## [2026-05-10 10:00] Phase 4 — Global base styles and font
+**Files:**
+frontend/src/index.css
+frontend/index.html
+frontend/tailwind.config.js
+**Deviations from spec:** None
+**Assumptions:** None
+**Next session notes:** None
+
 ## [2026-05-08 17:45] Phase 3b — CaveForm mandatory fields and label update
 **Files:**
 frontend/src/pages/CaveForm.tsx

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as cavesApi from '../api/caves';
 import type { CaveWritePayload, CaveMedia, ApiError } from '../api/caves';
+import { ArrowLeftIcon, CloudArrowUpIcon, TrashIcon, DocumentIcon, PhotoIcon, MapIcon } from '@heroicons/react/20/solid';
 
 const CaveForm: React.FC = () => {
   const params = useParams();
@@ -69,7 +70,7 @@ const CaveForm: React.FC = () => {
           setError(null);
         } catch (err) {
           console.error('Error loading cave data:', err);
-          setError('Errore durante il caricamento dei dati della grotta. Verifica che il codice catasto sia corretto.');
+          setError('Errore durante il caricamento dei dati della grotta.');
         } finally {
           setIsLoading(false);
         }
@@ -90,13 +91,6 @@ const CaveForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Explicit validation check to trigger browser popup
-    if (!e.currentTarget.checkValidity()) {
-      e.currentTarget.reportValidity();
-      return;
-    }
-
     setIsSubmitting(true);
     setError(null);
     setFieldErrors({});
@@ -111,12 +105,11 @@ const CaveForm: React.FC = () => {
       }
       navigate('/dashboard');
     } catch (err: unknown) {
-      console.error('Error saving cave:', err);
       const apiErr = err as ApiError;
       if (apiErr.data) {
         setFieldErrors(apiErr.data);
       } else {
-        setError('Errore durante il salvataggio della grotta. Riprova più tardi.');
+        setError('Errore durante il salvataggio della grotta.');
       }
     } finally {
       setIsSubmitting(false);
@@ -142,7 +135,7 @@ const CaveForm: React.FC = () => {
       if (fileInput) fileInput.value = '';
     } catch (err) {
       console.error('Error uploading media:', err);
-      alert('Errore durante l\'upload del file.');
+      alert('Errore durante l\'upload.');
     } finally {
       setIsUploading(false);
     }
@@ -150,366 +143,325 @@ const CaveForm: React.FC = () => {
 
   const handleDeleteMedia = async (mediaId: number) => {
     if (!window.confirm("Eliminare questo file?")) return;
-
     try {
       await cavesApi.deleteMedia(mediaId);
       setMedia(prev => prev.filter(m => m.id !== mediaId));
     } catch (err) {
       console.error('Error deleting media:', err);
-      alert('Errore durante l\'eliminazione del file.');
     }
   };
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-slate-950/50 flex flex-col items-center justify-center z-50">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-500 mb-4"></div>
-        <p className="text-teal-400 font-medium">Caricamento in corso...</p>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
       </div>
     );
   }
 
+  const inputClass = "w-full bg-slate-900 border border-slate-600 text-white placeholder-slate-500 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all";
+  const labelClass = "block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 ml-1";
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">
-          {isEditMode ? `Modifica: ${formData.name}` : 'Nuova grotta'}
-        </h1>
+    <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
+      <div className="flex items-center space-x-4 mb-8">
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-slate-400 hover:text-white transition-colors"
+          className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full transition-colors"
         >
-          Annulla
+          <ArrowLeftIcon className="w-5 h-5" />
         </button>
+        <h1 className="text-3xl font-bold text-white">
+          {isEditMode ? 'Modifica grotta' : 'Nuova grotta'}
+        </h1>
       </div>
 
-      {error && (
-        <div className="bg-red-900/50 border border-red-500 p-4 rounded text-red-200">
-          {error}
-        </div>
-      )}
+      <form onSubmit={handleSubmit} className="bg-slate-800 rounded-xl p-8 border border-slate-700 shadow-2xl space-y-8">
+        {error && (
+          <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} noValidate={false} className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-8 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Registry ID */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Codice catasto <span className="text-red-500">*</span>
-            </label>
+          <div className="md:col-span-1">
+            <label className={labelClass}>Numero di catasto *</label>
             <input
               type="text"
               name="registry_id"
               value={formData.registry_id}
               onChange={handleChange}
               disabled={isEditMode}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500 disabled:opacity-50"
+              className={`${inputClass} ${isEditMode ? 'bg-slate-700 text-slate-400 cursor-not-allowed border-slate-600' : ''}`}
               required
             />
-            {fieldErrors.registry_id && (
-              <p className="text-red-400 text-xs mt-1">{fieldErrors.registry_id[0]}</p>
-            )}
+            {fieldErrors.registry_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.registry_id[0]}</p>}
           </div>
 
-          {/* Plaque Number */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Numero placchetta</label>
+          <div className="md:col-span-1">
+            <label className={labelClass}>Numero placchetta</label>
             <input
               type="text"
               name="plaque_number"
               value={formData.plaque_number || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
 
-          {/* Name */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Nome <span className="text-red-500">*</span>
-            </label>
+            <label className={labelClass}>Nome grotta *</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
               required
             />
-            {fieldErrors.name && (
-              <p className="text-red-400 text-xs mt-1">{fieldErrors.name[0]}</p>
-            )}
+            {fieldErrors.name && <p className="text-red-400 text-xs mt-1">{fieldErrors.name[0]}</p>}
           </div>
 
-          {/* Coordinates */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Latitudine <span className="text-red-500">*</span>
-            </label>
+            <label className={labelClass}>Latitudine *</label>
             <input
               type="number"
-              step="0.000001"
+              step="any"
               name="latitude"
               value={formData.latitude}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
               required
             />
-            {fieldErrors.latitude && (
-              <p className="text-red-400 text-xs mt-1">{fieldErrors.latitude[0]}</p>
-            )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Longitudine <span className="text-red-500">*</span>
-            </label>
+            <label className={labelClass}>Longitudine *</label>
             <input
               type="number"
-              step="0.000001"
+              step="any"
               name="longitude"
               value={formData.longitude}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
               required
             />
-            {fieldErrors.longitude && (
-              <p className="text-red-400 text-xs mt-1">{fieldErrors.longitude[0]}</p>
-            )}
           </div>
 
-          {/* Physical specs */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Quota ingresso (m)</label>
+            <label className={labelClass}>Quota ingresso (m)</label>
             <input
               type="number"
               name="elevation"
               value={formData.elevation ?? ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Estensione spaziale (m)</label>
+            <label className={labelClass}>Sviluppo spaziale (m)</label>
             <input
               type="number"
               name="length"
               value={formData.length ?? ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Verticale positiva (m)</label>
+            <label className={labelClass}>Dislivello + (m)</label>
             <input
               type="number"
               name="depth_positive"
               value={formData.depth_positive ?? ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Verticale negativa (m)</label>
+            <label className={labelClass}>Dislivello - (m)</label>
             <input
               type="number"
               name="depth_negative"
               value={formData.depth_negative ?? ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
 
-          {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Comune</label>
+            <label className={labelClass}>Comune</label>
             <input
               type="text"
               name="municipality"
               value={formData.municipality || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Valle</label>
+            <label className={labelClass}>Valle</label>
             <input
               type="text"
               name="valley"
               value={formData.valley || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
 
-          {/* Geology & Date */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Geologia <span className="text-red-500">*</span>
-            </label>
+            <label className={labelClass}>Geologia *</label>
             <select
               name="geology"
               value={formData.geology || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
               required
             >
-              <option value="">- Seleziona -</option>
+              <option value="">Seleziona...</option>
               <option value="limestone">Calcare</option>
               <option value="dolomite">Dolomia</option>
               <option value="gypsum">Gesso</option>
               <option value="other">Altro</option>
             </select>
-            {fieldErrors.geology && (
-              <p className="text-red-400 text-xs mt-1">{fieldErrors.geology[0]}</p>
-            )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Data ultima modifica <span className="text-red-500">*</span>
-            </label>
+            <label className={labelClass}>Data ultima modifica *</label>
             <input
               type="date"
               name="last_survey_date"
               value={formData.last_survey_date || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500 text-white"
+              className={inputClass}
               required
             />
-            {fieldErrors.last_survey_date && (
-              <p className="text-red-400 text-xs mt-1">{fieldErrors.last_survey_date[0]}</p>
-            )}
           </div>
 
-          {/* Description */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-300 mb-1">Descrizione</label>
+            <label className={labelClass}>Descrizione</label>
             <textarea
               name="description"
               rows={4}
               value={formData.description || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500"
+              className={inputClass}
             />
           </div>
 
-          {/* Status */}
           <div className="md:col-span-2">
-            <label className="flex items-center space-x-3 cursor-pointer">
+            <label className="flex items-center space-x-3 cursor-pointer group">
               <input
                 type="checkbox"
                 name="is_published"
                 checked={formData.is_published}
                 onChange={handleChange}
-                className="w-5 h-5 bg-slate-900 border-slate-700 rounded text-teal-600 focus:ring-teal-500"
+                className="w-5 h-5 bg-slate-900 border-slate-600 rounded text-teal-500 focus:ring-teal-500 transition-all"
               />
-              <span className="text-sm font-medium text-slate-300">Pubblicata (visibile a tutti)</span>
+              <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+                Pubblica nel catasto (visibile a tutti)
+              </span>
             </label>
           </div>
         </div>
 
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end space-x-4 pt-4 border-t border-slate-700">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-8 py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-700 rounded-md font-bold text-white transition-colors min-w-[160px]"
+            className="px-8 py-3 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg shadow-teal-500/10 transition-all"
           >
-            {isSubmitting ? 'Salvataggio...' : 'Salva Grotta'}
+            {isSubmitting ? 'Salvataggio...' : 'Salva grotta'}
           </button>
         </div>
       </form>
 
-      {/* Media Manager Section */}
       {isEditMode && (
-        <div className="space-y-6">
-          <hr className="border-slate-700" />
-          <h2 className="text-2xl font-bold">Gestione media</h2>
+        <div className="mt-12 pt-12 border-t border-slate-700">
+          <h2 className="text-2xl font-bold text-white mb-6">Gestione media</h2>
           
-          <div className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl overflow-hidden">
-            <div className="p-6 space-y-6">
-              <div className="space-y-4">
-                {media.length === 0 ? (
-                  <p className="text-slate-500 text-sm">Nessun file caricato.</p>
-                ) : (
-                  media.map(item => (
-                    <div key={item.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-slate-700">
-                      <div className="flex items-center space-x-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                          item.media_type === 'photo' ? 'bg-blue-900 text-blue-300' : 
-                          item.media_type === 'survey_pdf' ? 'bg-red-900 text-red-300' : 'bg-purple-900 text-purple-300'
-                        }`}>
-                          {item.media_type === 'photo' ? 'Foto' : item.media_type === 'survey_pdf' ? 'PDF' : 'Rilievo'}
-                        </span>
-                        <div>
-                          <p className="text-sm font-medium">{item.caption || item.file_url.split('/').pop()}</p>
-                          <p className="text-[10px] text-slate-500">Caricato il {new Date(item.uploaded_at).toLocaleDateString()}</p>
-                        </div>
+          <div className="space-y-4 mb-8">
+            {media.length === 0 ? (
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-8 text-center text-slate-500 italic">
+                Nessun file multimediale caricato per questa grotta.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {media.map(item => (
+                  <div key={item.id} className="bg-slate-800 border border-slate-700 rounded-lg px-5 py-3 flex items-center justify-between group hover:border-slate-500 transition-all">
+                    <div className="flex items-center space-x-4">
+                      <div className={`p-2 rounded-lg ${
+                        item.media_type === 'photo' ? 'bg-blue-900/30 text-blue-400' : 
+                        item.media_type === 'survey_pdf' ? 'bg-red-900/30 text-red-400' : 'bg-purple-900/30 text-purple-400'
+                      }`}>
+                        {item.media_type === 'photo' ? <PhotoIcon className="w-5 h-5" /> : 
+                         item.media_type === 'survey_pdf' ? <DocumentIcon className="w-5 h-5" /> : <MapIcon className="w-5 h-5" />}
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <a 
-                          href={item.file_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-teal-400 hover:text-teal-300 font-medium"
-                        >
-                          Visualizza
-                        </a>
-                        <button 
-                          onClick={() => handleDeleteMedia(item.id)}
-                          className="text-xs text-red-400 hover:text-red-300 font-medium"
-                        >
-                          Elimina
-                        </button>
+                      <div>
+                        <div className="text-sm font-semibold text-white">{item.caption || 'Senza titolo'}</div>
+                        <div className="text-xs text-slate-500">{item.media_type.replace('_', ' ')}</div>
                       </div>
                     </div>
-                  ))
-                )}
+                    <div className="flex items-center space-x-4">
+                      <a href={item.file_url} target="_blank" rel="noreferrer" className="text-teal-400 hover:text-teal-300 text-xs font-bold uppercase tracking-wider">Apri</a>
+                      <button onClick={() => handleDeleteMedia(item.id)} className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 transition-all">
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-
-              <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-slate-900/50 rounded-lg border border-dashed border-slate-600">
-                <div className="md:col-span-1">
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Tipo media</label>
-                  <select
-                    value={mediaType}
-                    onChange={(e) => setMediaType(e.target.value as 'photo' | 'survey_pdf' | 'survey_image')}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-sm"
-                  >
-                    <option value="photo">Foto</option>
-                    <option value="survey_pdf">Rilievo PDF</option>
-                    <option value="survey_image">Rilievo Immagine</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Didascalia (opzionale)</label>
-                  <input
-                    type="text"
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-sm"
-                    placeholder="E es. Ingresso grotta"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Seleziona file</label>
-                  <input
-                    id="media-file"
-                    type="file"
-                    accept={mediaType === 'survey_pdf' ? 'application/pdf' : 'image/jpeg,image/png,image/webp'}
-                    onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
-                    className="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 cursor-pointer"
-                    required
-                  />
-                </div>
-                <div className="md:col-span-1 flex items-end">
-                  <button
-                    type="submit"
-                    disabled={isUploading || !uploadFile}
-                    className="w-full py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-800 disabled:text-slate-500 rounded font-bold text-sm transition-colors"
-                  >
-                    {isUploading ? 'Caricamento...' : 'Carica'}
-                  </button>
-                </div>
-              </form>
-            </div>
+            )}
           </div>
+
+          <form onSubmit={handleUpload} className="bg-slate-800/50 border border-dashed border-slate-600 rounded-xl p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className={labelClass}>Tipo file</label>
+                <select
+                  value={mediaType}
+                  onChange={(e) => setMediaType(e.target.value as any)}
+                  className={inputClass}
+                >
+                  <option value="photo">Fotografia</option>
+                  <option value="survey_pdf">Rilievo (PDF)</option>
+                  <option value="survey_image">Rilievo (Immagine)</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Didascalia</label>
+                <input
+                  type="text"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  className={inputClass}
+                  placeholder="E es. Veduta dall'esterno"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className={labelClass}>Seleziona file</label>
+                <div className="flex items-center justify-center w-full">
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-900 hover:bg-slate-800 transition-all">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <CloudArrowUpIcon className="w-8 h-8 text-slate-500 mb-2" />
+                      <p className="text-sm text-slate-400 text-center px-4">
+                        {uploadFile ? <span className="text-teal-400 font-semibold">{uploadFile.name}</span> : 'Trascina o clicca per caricare un file'}
+                      </p>
+                    </div>
+                    <input id="media-file" type="file" className="hidden" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={isUploading || !uploadFile}
+                className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold rounded-lg transition-all"
+              >
+                {isUploading ? 'Caricamento...' : 'Carica file'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronUpIcon, ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { fetchCaves, type Cave, type PaginatedResponse } from '../api/caves';
 
 const CaveList = () => {
@@ -37,7 +39,7 @@ const CaveList = () => {
         }
       } catch (err) {
         if (!ignore) {
-          setError('Failed to load caves. Please try again later.');
+          setError('Errore nel caricamento delle grotte. Riprova più tardi.');
           console.error(err);
         }
       } finally {
@@ -63,21 +65,26 @@ const CaveList = () => {
     setPage(1);
   };
 
-  const renderSortArrow = (field: string) => {
-    if (ordering === field) return ' ↑';
-    if (ordering === `-${field}`) return ' ↓';
-    return '';
+  const renderSortIcon = (field: string) => {
+    if (ordering === field) return <ChevronUpIcon className="w-4 h-4 ml-1 inline" />;
+    if (ordering === `-${field}`) return <ChevronDownIcon className="w-4 h-4 ml-1 inline" />;
+    return null;
   };
 
+  const totalPages = data ? Math.ceil(data.count / 50) : 0;
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-teal-400">Caves Registry</h1>
-        <div className="relative">
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <h1 className="text-3xl font-bold text-white">Elenco Grotte</h1>
+        <div className="relative max-w-sm w-full">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <MagnifyingGlassIcon className="h-5 w-5 text-slate-400" />
+          </div>
           <input
             type="text"
-            placeholder="Search by name or ID..."
-            className="w-full md:w-64 bg-slate-900 border border-slate-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+            placeholder="Cerca per nome o catasto..."
+            className="block w-full bg-slate-800 border border-slate-600 text-white placeholder-slate-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -85,78 +92,86 @@ const CaveList = () => {
       </div>
 
       {error && (
-        <div className="bg-red-900/50 border border-red-500 text-red-200 p-4 rounded-lg">
+        <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-800 shadow-lg">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-900 text-slate-400 text-sm uppercase tracking-wider">
+      <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 shadow-xl">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-slate-800 text-slate-400 uppercase text-xs tracking-wider">
+            <tr>
               <th 
-                className="px-6 py-4 cursor-pointer hover:text-white transition-colors"
+                className="px-4 py-3 cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('registry_id')}
               >
-                Registry ID{renderSortArrow('registry_id')}
+                Catasto {renderSortIcon('registry_id')}
               </th>
               <th 
-                className="px-6 py-4 cursor-pointer hover:text-white transition-colors"
+                className="px-4 py-3 cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('name')}
               >
-                Name{renderSortArrow('name')}
+                Nome {renderSortIcon('name')}
               </th>
               <th 
-                className="px-6 py-4 cursor-pointer hover:text-white transition-colors"
+                className="px-4 py-3 cursor-pointer hover:text-white transition-colors text-right"
                 onClick={() => handleSort('elevation')}
               >
-                Elevation (m){renderSortArrow('elevation')}
+                Quota (m) {renderSortIcon('elevation')}
               </th>
               <th 
-                className="px-6 py-4 cursor-pointer hover:text-white transition-colors"
+                className="px-4 py-3 cursor-pointer hover:text-white transition-colors text-right"
                 onClick={() => handleSort('length')}
               >
-                Length (m){renderSortArrow('length')}
+                Sviluppo {renderSortIcon('length')}
               </th>
               <th 
-                className="px-6 py-4 cursor-pointer hover:text-white transition-colors"
+                className="px-4 py-3 cursor-pointer hover:text-white transition-colors text-right"
                 onClick={() => handleSort('depth_positive')}
               >
-                Depth↑ (m){renderSortArrow('depth_positive')}
+                Dislivello+ {renderSortIcon('depth_positive')}
               </th>
               <th 
-                className="px-6 py-4 cursor-pointer hover:text-white transition-colors"
+                className="px-4 py-3 cursor-pointer hover:text-white transition-colors text-right"
                 onClick={() => handleSort('depth_negative')}
               >
-                Depth↓ (m){renderSortArrow('depth_negative')}
+                Dislivello- {renderSortIcon('depth_negative')}
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800">
             {loading ? (
               [...Array(10)].map((_, i) => (
-                <tr key={i} className="animate-pulse bg-slate-900/50">
-                  <td colSpan={6} className="px-6 py-4 h-12"></td>
+                <tr key={i} className="animate-pulse odd:bg-slate-900 even:bg-slate-800">
+                  <td colSpan={6} className="px-4 py-4 h-12"></td>
                 </tr>
               ))
             ) : data?.results.length ? (
               data.results.map((cave) => (
                 <tr 
                   key={cave.id} 
-                  className="bg-slate-900 odd:bg-slate-900/50 hover:bg-slate-800 transition-colors"
+                  className="odd:bg-slate-900 even:bg-slate-800 hover:bg-slate-700 transition-colors"
                 >
-                  <td className="px-6 py-4 font-mono text-teal-300">{cave.registry_id}</td>
-                  <td className="px-6 py-4 font-medium">{cave.name}</td>
-                  <td className="px-6 py-4 text-slate-300">{cave.elevation ?? '—'}</td>
-                  <td className="px-6 py-4 text-slate-300">{cave.length ?? '—'}</td>
-                  <td className="px-6 py-4 text-slate-300">{cave.depth_positive ?? '—'}</td>
-                  <td className="px-6 py-4 text-slate-300">{cave.depth_negative ?? '—'}</td>
+                  <td className="px-4 py-3 font-mono text-teal-400">
+                    <Link to={`/caves/${cave.registry_id}`} className="hover:underline">
+                      {cave.registry_id}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link to={`/caves/${cave.registry_id}`} className="hover:underline">
+                      {cave.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-right text-slate-300">{cave.elevation ?? <span className="text-slate-500">—</span>}</td>
+                  <td className="px-4 py-3 text-right text-slate-300">{cave.length ?? <span className="text-slate-500">—</span>}</td>
+                  <td className="px-4 py-3 text-right text-slate-300">{cave.depth_positive ?? <span className="text-slate-500">—</span>}</td>
+                  <td className="px-4 py-3 text-right text-slate-300">{cave.depth_negative ?? <span className="text-slate-500">—</span>}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                  No caves found matching your search.
+                <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
+                  Nessuna grotta trovata.
                 </td>
               </tr>
             )}
@@ -165,27 +180,24 @@ const CaveList = () => {
       </div>
 
       {data && (
-        <div className="flex items-center justify-between py-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
           <p className="text-slate-400 text-sm">
-            Showing <span className="text-white font-medium">{data.results.length}</span> of <span className="text-white font-medium">{data.count}</span> caves
+            Pagina <span className="text-white font-medium">{page}</span> di <span className="text-white font-medium">{totalPages}</span> — <span className="text-white font-medium">{data.count}</span> grotte totali
           </p>
-          <div className="flex space-x-2">
+          <div className="flex space-x-3">
             <button
               onClick={() => setPage(page - 1)}
               disabled={!data.previous || loading}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+              className="px-6 py-2 border border-slate-500 hover:border-slate-300 text-slate-300 hover:text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Previous
+              Precedente
             </button>
-            <div className="flex items-center px-4 bg-slate-900 rounded-lg border border-slate-800">
-              Page {page}
-            </div>
             <button
               onClick={() => setPage(page + 1)}
               disabled={!data.next || loading}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+              className="px-6 py-2 border border-slate-500 hover:border-slate-300 text-slate-300 hover:text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Next
+              Successivo
             </button>
           </div>
         </div>
