@@ -15,10 +15,12 @@ from .serializers import (
     CaveMediaSerializer,
 )
 
+
 # Custom Session Authentication that skips CSRF for PoC
 class UnsafeSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -143,12 +145,22 @@ class CaveGeoJsonView(generics.ListAPIView):
 
 class CaveMediaListView(generics.ListCreateAPIView):
     serializer_class = CaveMediaSerializer
-    permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [UnsafeSessionAuthentication]
 
     def get_queryset(self):
-        cave = get_object_or_404(Cave, registry_id=self.kwargs["registry_id"])
+        registry_id = self.kwargs["registry_id"]
+        if self.request.user.is_authenticated:
+            cave_qs = Cave.objects.all()
+        else:
+            cave_qs = Cave.objects.filter(is_published=True)
+
+        cave = get_object_or_404(cave_qs, registry_id=registry_id)
         return CaveMedia.objects.filter(cave=cave)
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
         cave = get_object_or_404(Cave, registry_id=self.kwargs["registry_id"])

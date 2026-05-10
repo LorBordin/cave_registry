@@ -143,9 +143,7 @@ export async function deleteCave(registryId: string): Promise<void> {
 }
 
 export async function fetchCaveMedia(registryId: string): Promise<CaveMedia[]> {
-  const response = await fetch(`/api/v1/caves/${encodeURIComponent(registryId)}/media/`, {
-    credentials: 'include',
-  });
+  const response = await fetch(`/api/v1/caves/${encodeURIComponent(registryId)}/media/`);
   if (!response.ok) {
     throw new Error('Failed to fetch cave media');
   }

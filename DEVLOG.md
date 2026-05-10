@@ -1,5 +1,49 @@
 # Devlog
 
+## [2026-05-10 16:30] Phase 5 — Completed
+**Files:**
+backend/caves/views.py
+frontend/src/api/caves.ts
+frontend/src/pages/CaveDetail.tsx
+frontend/src/pages/CaveList.tsx
+frontend/src/pages/CaveMap.tsx
+frontend/src/utils/leafletIconFix.ts
+frontend/src/pages/CaveForm.tsx
+**Deviations from spec:** None
+**Assumptions:** Mini-map in detail page uses OpenStreetMap tiles. Lightbox handles photo viewing without external libraries.
+**Next session notes:** All Phase 5 tasks are complete, verified, and linted. The application is now fully functional for public and private users.
+
+## [2026-05-10 16:15] Phase 5 — Cave Detail page implementation and wiring
+**Files:**
+frontend/src/pages/CaveDetail.tsx
+frontend/src/pages/CaveList.tsx
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Mini-map in detail page uses OpenStreetMap tiles. Lightbox handles photo viewing without external libraries.
+**Next session notes:** Phase 5 complete.
+
+## [2026-05-10 16:00] Phase 5 — Extract Leaflet icon fix utility
+**Files:**
+frontend/src/utils/leafletIconFix.ts
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Using `L.Icon.Default.mergeOptions` as it is the standard way to fix the icon paths in Leaflet.
+**Next session notes:** None
+
+## [2026-05-10 15:55] Phase 5 — Frontend fetchCaveMedia public
+**Files:**
+frontend/src/api/caves.ts
+**Deviations from spec:** None
+**Assumptions:** Removing `credentials: 'include'` explicitly avoids sending the session cookie.
+**Next session notes:** None
+
+## [2026-05-10 15:50] Phase 5 — Backend media list endpoint public
+**Files:**
+backend/caves/views.py
+**Deviations from spec:** None
+**Assumptions:** Authenticated users can still see media for unpublished caves, consistent with the CaveDetail endpoint.
+**Next session notes:** Verified with curl: public access to media for published caves works, returns 404 for unpublished caves or non-existent caves.
+
 ## [2026-05-08 10:00] Foundation — Repository structure
 **Files:**
 .gitignore

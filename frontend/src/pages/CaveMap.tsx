@@ -5,20 +5,9 @@ import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { fetchCaveGeoJson } from '../api/caves';
+import { fixLeafletIcon } from '../utils/leafletIconFix';
 
-// Fix for Leaflet default icon issues with Vite
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
+fixLeafletIcon();
 
 const CaveMap = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -80,7 +69,7 @@ const CaveMap = () => {
                   <div>Dislivello-: <span class="font-semibold text-slate-800">${depth_negative ? depth_negative + ' m' : '—'}</span></div>
                 </div>
                 <div class="pt-2 mt-2 border-t border-slate-200">
-                  <a href="/caves/${registry_id}" class="text-teal-600 hover:text-teal-700 font-semibold text-xs transition-colors">Dettagli →</a>
+                  <a href="/caves/${registry_id}" style="color: #2dd4bf;" class="font-semibold text-xs hover:underline transition-colors">Dettagli →</a>
                 </div>
               </div>
             `;

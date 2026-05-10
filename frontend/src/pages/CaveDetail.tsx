@@ -1,33 +1,97 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchCave, type Cave } from '../api/caves';
-import { ArrowLeftIcon } from '@heroicons/react/20/solid';
+import { fetchCave, fetchCaveMedia, type Cave, type CaveMedia } from '../api/caves';
+import { DocumentArrowDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { fixLeafletIcon } from '../utils/leafletIconFix';
+
+fixLeafletIcon();
+
+const geologyLabels: Record<string, string> = {
+  limestone: 'Calcare',
+  dolomite: 'Dolomia',
+  gypsum: 'Gesso',
+  other: 'Altro',
+};
+
+const DataCard = ({ label, value }: { label: string; value: string | number | null | undefined }) => {
+  return (
+    <div className="bg-slate-800 rounded-lg p-4">
+      <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">{label}</div>
+      <div className={`font-medium ${value ? 'text-white' : 'text-slate-500'}`}>
+        {value || '—'}
+      </div>
+    </div>
+  );
+};
 
 const CaveDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [cave, setCave] = useState<Cave | null>(null);
+  const [media, setMedia] = useState<CaveMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
-    const loadCave = async () => {
+    const loadData = async () => {
       setLoading(true);
       try {
-        const data = await fetchCave(id);
-        setCave(data);
+        const [caveData, mediaData] = await Promise.all([
+          fetchCave(id),
+          fetchCaveMedia(id),
+        ]);
+        setCave(caveData);
+        setMedia(mediaData);
         setError(null);
       } catch (err) {
-        console.error('Error fetching cave:', err);
-        setError('Grotta non trovata.');
+        console.error('Error fetching cave details:', err);
+        setError('Grotta non trovata');
       } finally {
         setLoading(false);
       }
     };
 
-    loadCave();
+    loadData();
   }, [id]);
+
+  useEffect(() => {
+    if (!cave || !cave.latitude || !cave.longitude) return;
+
+    const mapContainer = document.getElementById('mini-map');
+    if (!mapContainer) return;
+
+    const map = L.map(mapContainer, {
+      center: [cave.latitude, cave.longitude],
+      zoom: 13,
+      scrollWheelZoom: false,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.marker([cave.latitude, cave.longitude]).addTo(map);
+
+    return () => {
+      map.remove();
+    };
+  }, [cave]);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -39,58 +103,158 @@ const CaveDetail = () => {
 
   if (error || !cave) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-white mb-4">{error || 'Errore imprevisto.'}</h2>
-        <Link to="/caves" className="text-teal-400 hover:text-teal-300 font-medium flex items-center justify-center space-x-2">
-          <ArrowLeftIcon className="w-4 h-4" />
-          <span>Torna all'elenco</span>
-        </Link>
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <div className="bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-2xl">
+          <h2 className="text-2xl font-bold text-white mb-2">Grotta non trovata</h2>
+          <p className="text-slate-400 mb-8">La grotta richiesta non esiste o non è stata ancora pubblicata.</p>
+          <Link to="/caves" className="text-teal-400 hover:text-teal-300 font-medium inline-flex items-center space-x-2">
+            <span>← Torna all'elenco</span>
+          </Link>
+        </div>
       </div>
     );
   }
 
+  const photos = media.filter(m => m.media_type === 'photo' || m.media_type === 'survey_image');
+  const surveys = media.filter(m => m.media_type === 'survey_pdf');
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('it-IT');
+  };
+
+  const formatCoords = (val: number, dir: 'N' | 'E') => {
+    return `${val.toFixed(6)}° ${dir}`;
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <Link to="/caves" className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition-colors mb-8">
-        <ArrowLeftIcon className="w-4 h-4" />
-        <span>Torna all'elenco</span>
-      </Link>
-
-      <div className="bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-2xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-slate-700 pb-8">
-          <div>
-            <div className="text-teal-400 font-mono text-sm mb-2 uppercase tracking-widest">Catasto: {cave.registry_id}</div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white">{cave.name}</h1>
-          </div>
-          <div className="bg-slate-900 rounded-xl px-6 py-4 border border-slate-700">
-            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Quota</div>
-            <div className="text-2xl font-bold text-white">{cave.elevation ? `${cave.elevation} m s.l.m.` : '—'}</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
-            <div className="text-slate-500 text-xs font-bold uppercase mb-1">Sviluppo</div>
-            <div className="text-xl font-semibold text-white">{cave.length ? `${cave.length} m` : '—'}</div>
-          </div>
-          <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
-            <div className="text-slate-500 text-xs font-bold uppercase mb-1">Dislivello +</div>
-            <div className="text-xl font-semibold text-white">{cave.depth_positive ? `${cave.depth_positive} m` : '—'}</div>
-          </div>
-          <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
-            <div className="text-slate-500 text-xs font-bold uppercase mb-1">Dislivello -</div>
-            <div className="text-xl font-semibold text-white">{cave.depth_negative ? `${cave.depth_negative} m` : '—'}</div>
-          </div>
-        </div>
-
-        <div className="bg-teal-900/20 border border-teal-500/30 rounded-xl p-8 text-center">
-          <div className="text-teal-400 text-3xl mb-4">⚒️</div>
-          <h3 className="text-xl font-bold text-white mb-2">Pagina di dettaglio in costruzione</h3>
-          <p className="text-slate-300 max-w-lg mx-auto">
-            Stiamo lavorando per visualizzare qui tutte le informazioni tecniche, la galleria fotografica e i rilievi scaricabili. Disponibile nella prossima versione.
-          </p>
-        </div>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* 1. Header section */}
+      <nav className="flex text-sm text-slate-400 mb-2 items-center space-x-2">
+        <Link to="/caves" className="hover:text-white transition-colors">Grotte</Link>
+        <span className="text-slate-600">/</span>
+        <span className="truncate">{cave.name}</span>
+      </nav>
+      
+      <h1 className="text-4xl font-bold text-white mt-2 mb-1">{cave.name}</h1>
+      <div className="text-slate-400 text-sm">
+        Codice catasto: {cave.registry_id}
+        {cave.plaque_number && (
+          <>  ·  Placchetta: {cave.plaque_number}</>
+        )}
       </div>
+      {!cave.is_published && (
+        <span className="inline-block mt-2 px-2 py-0.5 bg-slate-700 text-slate-300 text-xs font-semibold rounded uppercase tracking-wider">
+          Bozza
+        </span>
+      )}
+
+      {/* 2. Technical data grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+        <DataCard label="Quota ingresso" value={cave.elevation ? `${cave.elevation} m s.l.m.` : null} />
+        <DataCard label="Estensione spaziale" value={cave.length ? `${cave.length} m` : null} />
+        <DataCard label="Estensione verticale positiva" value={cave.depth_positive ? `${cave.depth_positive} m` : null} />
+        <DataCard label="Estensione verticale negativa" value={cave.depth_negative ? `${cave.depth_negative} m` : null} />
+        <DataCard label="Geologia" value={cave.geology ? geologyLabels[cave.geology] : null} />
+        <DataCard label="Comune" value={cave.municipality} />
+        <DataCard label="Valle" value={cave.valley} />
+        <DataCard label="Ultimo rilievo" value={cave.last_survey_date ? formatDate(cave.last_survey_date) : null} />
+        <DataCard label="Aggiornata il" value={formatDate(cave.updated_at)} />
+      </div>
+
+      {cave.description && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-white mb-3">Descrizione</h2>
+          <div className="text-slate-300 leading-relaxed whitespace-pre-wrap">{cave.description}</div>
+        </div>
+      )}
+
+      {/* 3. Mini map section */}
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold text-white mb-3">Posizione</h2>
+        <div id="mini-map" className="h-64 w-full rounded-xl overflow-hidden border border-slate-700 shadow-lg" />
+        {cave.latitude && cave.longitude && (
+          <div className="text-slate-400 text-sm text-right mt-2">
+            {formatCoords(cave.latitude, 'N')}, {formatCoords(cave.longitude, 'E')}
+          </div>
+        )}
+      </div>
+
+      {/* 4. Media section */}
+      {media.length > 0 && (
+        <div className="mt-10">
+          {photos.length > 0 && (
+            <>
+              <h2 className="text-lg font-semibold text-white mb-4">Galleria fotografica</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {photos.map((item) => (
+                  <div key={item.id} className="group">
+                    <img
+                      src={item.file_url}
+                      alt={item.caption ?? cave.name}
+                      className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setSelectedImage(item.file_url)}
+                    />
+                    {item.caption && (
+                      <div className="text-xs text-slate-400 mt-1 truncate">{item.caption}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {surveys.length > 0 && (
+            <div className={photos.length > 0 ? "mt-10" : ""}>
+              <h2 className="text-lg font-semibold text-white mb-4">Rilievi</h2>
+              <div className="space-y-3">
+                {surveys.map((item) => (
+                  <a
+                    key={item.id}
+                    href={item.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 bg-slate-800 rounded-lg px-4 py-3 hover:bg-slate-700 transition-colors group"
+                  >
+                    <DocumentArrowDownIcon className="text-teal-400 w-5 h-5 flex-shrink-0" />
+                    <div className="flex-grow min-w-0">
+                      <div className="text-white font-medium truncate">
+                        {item.file_url.split('/').pop()}
+                      </div>
+                      {item.caption && (
+                        <div className="text-slate-400 text-sm truncate">{item.caption}</div>
+                      )}
+                    </div>
+                    <div className="text-slate-500 text-xs flex-shrink-0">
+                      {formatDate(item.uploaded_at)}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white hover:text-slate-300 transition-colors"
+            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+          >
+            <XMarkIcon className="w-8 h-8" />
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Enlarged view" 
+            className="max-w-[90vw] max-h-[90vh] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };

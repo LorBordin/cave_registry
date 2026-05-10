@@ -152,15 +152,16 @@ const CaveList = () => {
                   key={cave.id} 
                   className="odd:bg-slate-900 even:bg-slate-800 hover:bg-slate-700 transition-colors"
                 >
-                  <td className="px-4 py-3 font-mono text-teal-400">
-                    <Link to={`/caves/${cave.registry_id}`} className="hover:underline">
+                  <td className="px-4 py-3 font-mono">
+                    <Link 
+                      to={`/caves/${cave.registry_id}`} 
+                      className="text-teal-400 hover:text-teal-300 hover:underline transition-colors"
+                    >
                       {cave.registry_id}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-medium">
-                    <Link to={`/caves/${cave.registry_id}`} className="hover:underline">
-                      {cave.name}
-                    </Link>
+                  <td className="px-4 py-3 font-medium text-white">
+                    {cave.name}
                   </td>
                   <td className="px-4 py-3 text-right text-slate-300">{cave.elevation ?? <span className="text-slate-500">—</span>}</td>
                   <td className="px-4 py-3 text-right text-slate-300">{cave.length ?? <span className="text-slate-500">—</span>}</td>

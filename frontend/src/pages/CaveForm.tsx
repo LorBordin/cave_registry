@@ -419,7 +419,7 @@ const CaveForm: React.FC = () => {
                 <label className={labelClass}>Tipo file</label>
                 <select
                   value={mediaType}
-                  onChange={(e) => setMediaType(e.target.value as any)}
+                  onChange={(e) => setMediaType(e.target.value as 'photo' | 'survey_pdf' | 'survey_image')}
                   className={inputClass}
                 >
                   <option value="photo">Fotografia</option>
