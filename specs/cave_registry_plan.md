@@ -18,7 +18,7 @@ The PoC must be fully functional: real data, real map, real logins — just not 
 | Page | Route | Description |
 | :--- | :--- | :--- |
 | **Landing Page** | `/` | Hero section with a short description of the project, a prominent CTA to the map and the list. Clean, minimal design. No carousel, no animation overkill. |
-| **Cave List** | `/caves` | Paginated table of all caves. Columns: Registry ID, Name, Municipality, Elevation (m a.s.l.), Length (m), Depth (m). Sortable by any column. Simple text search by name or ID. |
+| **Cave List** | `/caves` | Paginated table of all caves. Columns: Registry ID, Name, Elevation, Length, Depth↑, Depth↓. Sortable by any column. Simple text search by name or ID. |
 | **Cave Map** | `/map` | Full-screen interactive map. All caves rendered as markers. Clicking a marker opens a popup with: name, ID, elevation, and a "View details" link (placeholder for future Cave Detail page). |
 | **Cave Detail** *(planned — near future)* | `/caves/:id` | Dedicated page per cave. Displays all stored fields, photo gallery, and survey file downloads. Not in PoC scope but schema and routes should be stubbed. |
 
@@ -311,7 +311,7 @@ App.tsx
 │
 ├── pages/Landing.tsx
 │   ├── <HeroSection />         # Title, tagline, CTA buttons
-│   └── <StatsBar />            # Simple counters: N caves, N municipalities, etc.
+│   └── <StatsBar />            # Counters: total caves, published caves
 │
 ├── pages/CaveList.tsx
 │   ├── <SearchBar />
