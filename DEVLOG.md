@@ -1,24 +1,5 @@
 # Devlog
 
-## [2026-05-11 11:00] Phase 5 — Backend Tests
-**Files:**
-backend/caves/tests/test_api.py
-backend/caves/tests/test_commands.py
-backend/caves/tests/test_media.py
-backend/caves/views.py
-**Deviations from spec:** None
-**Assumptions:** Using `django-rest-framework-gis` for GeoJSON serialization in tests. Explicit ordering added to CaveMediaListView to satisfy pagination requirements.
-**Next session notes:** Backend tests are comprehensive and passing. Frontend tests could be added next.
-
-## [2026-05-11 10:00] Phase 5 — Documentation
-**Files:**
-README.md
-backend/README.md
-frontend/README.md
-**Deviations from spec:** None
-**Assumptions:** None
-**Next session notes:** The project is now fully documented with a root README and sub-project READMEs.
-
 ## [2026-05-10 16:30] Phase 5 — Completed
 **Files:**
 backend/caves/views.py
@@ -340,15 +321,16 @@ frontend/src/pages/CaveForm.tsx
 **Deviations from spec:** Made `geology` and `last_survey_date` mandatory in the frontend to match backend requirements. Renamed `last_survey_date` label to "Data ultima modifica".
 **Assumptions:** None
 
-## [2026-05-11 10:15] Documentation — Data Import Schema
+## [2026-05-11 10:00] Phase 5 — Documentation
 **Files:**
 README.md
-data/caves_sample.csv
-**Deviations from spec:** Added detailed CSV schema documentation and a sample CSV file which were missing.
-**Assumptions:** Schema derived from `import_caves.py` logic.
-**Next session notes:** None
+backend/README.md
+frontend/README.md
+**Deviations from spec:** None
+**Assumptions:** None
+**Next session notes:** The project is now fully documented with a root README and sub-project READMEs.
 
-## 2026-05-11 10:00 Documentation — Rebrand to (UN)official
+## [2026-05-11 10:05] Documentation — Rebrand to (UN)official
 **Files:**
 README.md
 GEMINI.md
@@ -361,3 +343,18 @@ specs/cave_registry_plan.md
 **Deviations from spec:** Clarified that the project is NOT the official registry.
 **Assumptions:** Using "(UN)official" branding as requested by user.
 **Next session notes:** None
+
+## [2026-05-11 10:15] Documentation — Data Import Schema
+**Files:**
+README.md
+data/caves_sample.csv
+**Deviations from spec:** Added detailed CSV schema documentation and a sample CSV file which were missing.
+**Assumptions:** Schema derived from `import_caves.py` logic.
+**Next session notes:** None
+
+## [2026-05-11 11:23] Documentation — Roadmap & Future Features
+**Files:**
+README.md
+**Deviations from spec:** Added a future roadmap based on community needs and map enhancements.
+**Assumptions:** None
+**Next session notes:** The project has a clear roadmap for future features including advanced map layers and filters.

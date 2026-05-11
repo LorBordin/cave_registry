@@ -124,6 +124,30 @@ Example CSV (`data/caves_sample.csv`):
 100/TN,Grotta del Calgero,46.0123,11.1234,650,450
 ```
 
+## 🗺️ Roadmap / Future Work
+
+We are continuously looking to improve the registry. The following features are planned for future development:
+
+### Map & Visualization
+- [ ] **Geology Layers:** Integration of official WMS geological maps (e.g., PAT) for terrain analysis.
+- [ ] **Interactive Map Filters:** Dynamic UI to filter caves on the map by depth, length, or elevation.
+- [ ] **3D View:** Implementation of true 3D terrain and camera tilt (MapLibre GL or CesiumJS).
+- [ ] **3D Survey Viewer:** Interactive web viewer for digital cave surveys (Therion/Compass files).
+
+### Tools & Integration
+- [ ] **GPX/KML Export:** One-click export for navigation and handheld GPS units.
+- [ ] **Spatial Tools:** "Nearby Caves" discovery and distance calculation.
+- [ ] **Weather & Hazards:** Real-time local precipitation and flood risk alerts.
+
+### Community & Content
+- [ ] **Crowdsourcing:** "Report a Change" system for public updates (pending moderation).
+- [ ] **Expedition Logs:** Lightweight field notes for cave status (e.g., anchor conditions).
+- [ ] **Bibliography:** Tracking of scientific publications and historical survey reports.
+
+### Safety & Access
+- [ ] **Access Status:** Clear indicators for seasonal closures (e.g., bat hibernation) and park restrictions.
+- [ ] **Automated Fact Sheets:** PDF "Cave Card" generation with QR codes for field use.
+
 ## 📝 License
 
 This project is a Proof of Concept. License details pending.
