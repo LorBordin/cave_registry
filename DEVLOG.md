@@ -394,3 +394,10 @@ frontend/src/pages/CaveMap.tsx
 **Deviations from spec:** Implemented a slide-out legend panel and a real-time identify tooltip using WMS GetFeatureInfo.
 **Assumptions:** Throttled hover requests to 400ms to maintain performance while providing interactive feedback.
 **Next session notes:** None
+
+## [2026-05-11 13:20] Phase 5 — Dynamic Geology Opacity
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Added a listener to change geology layer opacity between 0.5 (Satellite) and 0.7 (OSM).
+**Assumptions:** None
+**Next session notes:** None

@@ -65,6 +65,17 @@ const CaveMap = () => {
     clusterGroupRef.current = clusterGroup;
     map.addLayer(clusterGroup);
 
+    // Dynamic Opacity based on Base Layer
+    map.on('baselayerchange', (e: L.LayersControlEvent) => {
+      if (!geologiaWmsRef.current) return;
+      
+      if (e.name === "Satellite (Esri)") {
+        geologiaWmsRef.current.setOpacity(0.5);
+      } else {
+        geologiaWmsRef.current.setOpacity(0.7);
+      }
+    });
+
     // Identify Hover Logic
     let lastRequestTime = 0;
     const identifyThrottle = 400; // ms
