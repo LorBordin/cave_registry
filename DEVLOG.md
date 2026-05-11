@@ -358,3 +358,32 @@ README.md
 **Deviations from spec:** Added a future roadmap based on community needs and map enhancements.
 **Assumptions:** None
 **Next session notes:** The project has a clear roadmap for future features including advanced map layers and filters.
+
+## [2026-05-11 11:45] Phase 5 — Integrated PAT Geology WMS Overlay
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Using a combined layer '1,3,5,23,24' (bedrock, synthems, quaternary deposits, faults, limits) with 50% opacity as per user preference.
+**Next session notes:** None
+
+## [2026-05-11 12:10] Phase 5 — Refined Geology Overlay
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Increased opacity to 70% and added a toggleable legend panel using WMS GetLegendGraphic.
+**Assumptions:** The legend image is fetched from the official PAT WMS service.
+**Next session notes:** None
+
+## [2026-05-11 12:30] Phase 5 — Improved Legend UI and UX
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Moved legend button to bottom-left to avoid conflict with layer control. Converted legend panel to a large modal with full-resolution images and scroll support.
+**Assumptions:** High-resolution legend images are necessary for readability due to the complexity of the geological map.
+**Next session notes:** None
+
+## [2026-05-11 13:00] Phase 5 — High-Quality Native Legend Implementation
+**Files:**
+frontend/src/components/GeologyLegend.tsx
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Replaced static WMS legend images with a native React component that fetches legend data via JSON.
+**Assumptions:** Using ArcGIS REST API for legend data provides superior UX and styling control compared to standard WMS GetLegendGraphic.
+**Next session notes:** None

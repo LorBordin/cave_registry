@@ -18,14 +18,18 @@ class AuthTests(APITestCase):
     def test_login_success(self):
         url = reverse("login")
         data = {"username": self.username, "password": self.password}
-        response = self.client.post(url, data=json.dumps(data), content_type="application/json")
+        response = self.client.post(
+            url, data=json.dumps(data), content_type="application/json"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["username"], self.username)
 
     def test_login_failure(self):
         url = reverse("login")
         data = {"username": self.username, "password": "wrongpassword"}
-        response = self.client.post(url, data=json.dumps(data), content_type="application/json")
+        response = self.client.post(
+            url, data=json.dumps(data), content_type="application/json"
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_logout(self):
@@ -49,13 +53,13 @@ class CaveAPITests(APITestCase):
             registry_id="100",
             name="Published Cave",
             location=Point(11.0, 46.0),
-            is_published=True
+            is_published=True,
         )
         self.hidden_cave = Cave.objects.create(
             registry_id="200",
             name="Hidden Cave",
             location=Point(11.1, 46.1),
-            is_published=False
+            is_published=False,
         )
 
     def test_public_cave_list(self):
@@ -90,9 +94,11 @@ class CaveAPITests(APITestCase):
             "registry_id": "300",
             "name": "New Cave",
             "latitude": 46.2,
-            "longitude": 11.2
+            "longitude": 11.2,
         }
-        response = self.client.post(url, data=json.dumps(data), content_type="application/json")
+        response = self.client.post(
+            url, data=json.dumps(data), content_type="application/json"
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_cave_authenticated(self):
@@ -102,9 +108,11 @@ class CaveAPITests(APITestCase):
             "registry_id": "300",
             "name": "New Cave",
             "latitude": 46.2,
-            "longitude": 11.2
+            "longitude": 11.2,
         }
-        response = self.client.post(url, data=json.dumps(data), content_type="application/json")
+        response = self.client.post(
+            url, data=json.dumps(data), content_type="application/json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Cave.objects.filter(registry_id="300").exists())
 

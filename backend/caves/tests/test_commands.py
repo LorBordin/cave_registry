@@ -38,8 +38,7 @@ class IngestionCommandTests(TestCase):
 
     def test_import_caves_idempotency_and_enrichment(self):
         csv_content = (
-            "catasto,Nome,Latitudine,Longitudine\n"
-            "123,Initial Name,46.1,11.1\n"
+            "catasto,Nome,Latitudine,Longitudine\n123,Initial Name,46.1,11.1\n"
         )
         self.create_csv("caves.csv", csv_content)
         call_command("import_caves", source=self.test_dir)
@@ -51,8 +50,7 @@ class IngestionCommandTests(TestCase):
 
         # Update CSV with new name
         csv_content_updated = (
-            "catasto,Nome,Latitudine,Longitudine\n"
-            "123,Updated Name,46.1,11.1\n"
+            "catasto,Nome,Latitudine,Longitudine\n123,Updated Name,46.1,11.1\n"
         )
         self.create_csv("caves.csv", csv_content_updated)
         call_command("import_caves", source=self.test_dir)
@@ -78,8 +76,7 @@ class IngestionCommandTests(TestCase):
 
     def test_import_caves_hash_header(self):
         csv_content = (
-            "#catasto,Nome,Latitudine,Longitudine\n"
-            "456,Hash Header Cave,46.5,11.5\n"
+            "#catasto,Nome,Latitudine,Longitudine\n456,Hash Header Cave,46.5,11.5\n"
         )
         self.create_csv("caves.csv", csv_content)
 

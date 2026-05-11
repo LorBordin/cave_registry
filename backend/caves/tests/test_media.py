@@ -13,6 +13,7 @@ from caves.models import Cave, CaveMedia
 # Use a temporary directory for media during tests
 TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 
+
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class MediaTests(APITestCase):
     def setUp(self):
@@ -21,12 +22,12 @@ class MediaTests(APITestCase):
             registry_id="M1",
             name="Media Cave",
             location=Point(11.0, 46.0),
-            is_published=True
+            is_published=True,
         )
         self.test_image = SimpleUploadedFile(
             name="test_image.jpg",
             content=b"test image content",
-            content_type="image/jpeg"
+            content_type="image/jpeg",
         )
 
     @classmethod
@@ -37,24 +38,17 @@ class MediaTests(APITestCase):
     def test_upload_media_authenticated(self):
         self.client.login(username="admin", password="password")
         url = reverse("cave-media-list", kwargs={"registry_id": "M1"})
-        data = {
-            "media_type": "photo",
-            "caption": "Test Photo",
-            "file": self.test_image
-        }
+        data = {"media_type": "photo", "caption": "Test Photo", "file": self.test_image}
         response = self.client.post(url, data=data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CaveMedia.objects.count(), 1)
-        
+
         media = CaveMedia.objects.first()
         self.assertTrue(os.path.exists(media.file.path))
 
     def test_upload_media_unauthenticated(self):
         url = reverse("cave-media-list", kwargs={"registry_id": "M1"})
-        data = {
-            "media_type": "photo",
-            "file": self.test_image
-        }
+        data = {"media_type": "photo", "file": self.test_image}
         response = self.client.post(url, data=data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -64,13 +58,13 @@ class MediaTests(APITestCase):
             registry_id="M2",
             name="Hidden Media Cave",
             location=Point(11.1, 46.1),
-            is_published=False
+            is_published=False,
         )
         CaveMedia.objects.create(
             cave=hidden_cave,
             file=self.test_image,
             media_type="photo",
-            uploaded_by=self.user
+            uploaded_by=self.user,
         )
 
         # Public user should not see media for unpublished cave
@@ -87,13 +81,13 @@ class MediaTests(APITestCase):
 
     def test_media_file_cleanup_on_delete(self):
         self.client.login(username="admin", password="password")
-        
+
         # 1. Create media
         media = CaveMedia.objects.create(
             cave=self.cave,
             file=SimpleUploadedFile("to_delete.jpg", b"content"),
             media_type="photo",
-            uploaded_by=self.user
+            uploaded_by=self.user,
         )
         file_path = media.file.path
         self.assertTrue(os.path.exists(file_path))
@@ -102,24 +96,22 @@ class MediaTests(APITestCase):
         url = reverse("cave-media-delete", kwargs={"id": media.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        
+
         # 3. Check file is gone from disk
         self.assertFalse(os.path.exists(file_path))
 
     def test_cave_deletion_cleanup(self):
         self.client.login(username="admin", password="password")
-        
+
         # 1. Create cave with media
         cave_to_del = Cave.objects.create(
-            registry_id="DEL",
-            name="Delete Me",
-            location=Point(11.2, 46.2)
+            registry_id="DEL", name="Delete Me", location=Point(11.2, 46.2)
         )
         media = CaveMedia.objects.create(
             cave=cave_to_del,
             file=SimpleUploadedFile("cave_del.jpg", b"content"),
             media_type="photo",
-            uploaded_by=self.user
+            uploaded_by=self.user,
         )
         file_path = media.file.path
         self.assertTrue(os.path.exists(file_path))
@@ -128,7 +120,7 @@ class MediaTests(APITestCase):
         url = reverse("cave-detail", kwargs={"registry_id": "DEL"})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        
+
         # 3. Check cave and file are gone
         self.assertFalse(Cave.objects.filter(registry_id="DEL").exists())
         self.assertFalse(os.path.exists(file_path))
