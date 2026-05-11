@@ -344,3 +344,11 @@ specs/cave_registry_plan.md
 **Assumptions:** Using "(UN)official" branding as requested by user.
 **Next session notes:** None
 ---
+
+## [2026-05-11 10:15] Documentation — Data Import Schema
+**Files:**
+README.md
+data/caves_sample.csv
+**Deviations from spec:** Added detailed CSV schema documentation and a sample CSV file which were missing.
+**Assumptions:** Schema derived from `import_caves.py` logic.
+**Next session notes:** None

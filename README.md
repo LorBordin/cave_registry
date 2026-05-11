@@ -98,9 +98,31 @@ The application will be available at:
 
 The `import_caves` management command handles data synchronization:
 *   It reads all `*.csv` files in the `data/` folder.
-*   It uses `registry_id` (Numero di catasto) as a unique identifier.
+*   It uses `catasto` (Numero di catasto) as a unique identifier.
 *   It is **idempotent**: running it multiple times updates existing records without overwriting manual enrichment (like descriptions or geology) made via the dashboard.
 *   Caves missing coordinates are skipped with a warning.
+
+#### CSV Data Schema
+
+To import data, place CSV files in the `data/` directory. The files should have a header row (optionally prefixed with `#`). The following columns are recognized:
+
+| Column Header | Description | Required |
+| :--- | :--- | :--- |
+| `catasto` | Unique registry ID (Numero di catasto). | **Yes** |
+| `Latitudine` | Latitude in decimal degrees (WGS 84). | **Yes** |
+| `Longitudine` | Longitude in decimal degrees (WGS 84). | **Yes** |
+| `Nome` | The name of the cave. | No |
+| `Numero di placchetta` | Identification plaque number. | No |
+| `Quota ingresso` | Entrance elevation in meters (integer). | No |
+| `Estensione spaziale` | Total length/spatial extension in meters. | No |
+| `Estensione verticale positiva` | Positive vertical extension (climb) in meters. | No |
+| `Estensione verticale negativa` | Negative vertical extension (depth) in meters. | No |
+
+Example CSV (`data/caves_sample.csv`):
+```csv
+#catasto,Nome,Latitudine,Longitudine,Quota ingresso,Estensione spaziale
+100/TN,Grotta del Calgero,46.0123,11.1234,650,450
+```
 
 ## 📝 License
 
