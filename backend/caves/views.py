@@ -155,7 +155,7 @@ class CaveMediaListView(generics.ListCreateAPIView):
             cave_qs = Cave.objects.filter(is_published=True)
 
         cave = get_object_or_404(cave_qs, registry_id=registry_id)
-        return CaveMedia.objects.filter(cave=cave)
+        return CaveMedia.objects.filter(cave=cave).order_by("-uploaded_at")
 
     def get_permissions(self):
         if self.request.method == "GET":
