@@ -41,11 +41,13 @@ const Landing = () => {
 
         <div className="relative z-20 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+            <span className="text-teal-500 font-mono text-xl block mb-2">(UN)official</span>
             Catasto Grotte del <br className="hidden md:block" />
             <span className="text-teal-400">Trentino-Alto Adige</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Il registro ufficiale delle grotte della regione, consultabile pubblicamente e aggiornato dai membri autorizzati.
+            Il registro <span className="italic text-teal-300">(molto poco)</span> ufficiale delle grotte della regione. <br />
+            Un tributo amatoriale creato da appassionati per appassionati.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

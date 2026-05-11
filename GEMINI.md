@@ -1,6 +1,6 @@
-# Catasto Grotte
+# (UN)official Catasto Grotte
 
-This is a cave registry web app for Trentino–Alto Adige.
+This is an (un)official cave registry web app for Trentino–Alto Adige, built by speleology fans.
 
 ## Context
 Read `specs/trentino_cave_registry_plan_v2.md` before starting any work.

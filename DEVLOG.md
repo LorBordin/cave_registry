@@ -320,4 +320,27 @@ frontend/tailwind.config.js
 frontend/src/pages/CaveForm.tsx
 **Deviations from spec:** Made `geology` and `last_survey_date` mandatory in the frontend to match backend requirements. Renamed `last_survey_date` label to "Data ultima modifica".
 **Assumptions:** None
-**Next session notes:** Phase 3b is complete.
+
+## [2026-05-11 10:00] Phase 5 — Documentation
+**Files:**
+README.md
+backend/README.md
+frontend/README.md
+**Deviations from spec:** None
+**Assumptions:** None
+**Next session notes:** The project is now fully documented with a root README and sub-project READMEs.
+
+## 2026-05-11 10:00 Documentation — Rebrand to (UN)official
+**Files:**
+README.md
+GEMINI.md
+frontend/index.html
+frontend/src/pages/Landing.tsx
+frontend/src/components/Navbar.tsx
+backend/README.md
+frontend/README.md
+specs/cave_registry_plan.md
+**Deviations from spec:** Clarified that the project is NOT the official registry.
+**Assumptions:** Using "(UN)official" branding as requested by user.
+**Next session notes:** None
+---

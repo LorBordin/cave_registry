@@ -23,7 +23,10 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2 text-white font-semibold text-lg">
               <GlobeAltIcon className="w-6 h-6 text-teal-500" />
-              <span>Catasto Grotte</span>
+              <span className="flex items-baseline">
+                <span className="text-xs text-teal-500 font-mono mr-1 lowercase tracking-tighter">(un)</span>
+                Catasto Grotte
+              </span>
             </Link>
           </div>
           <div className="flex items-center space-x-2">

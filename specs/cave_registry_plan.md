@@ -1,11 +1,11 @@
-# Project Plan v2: Trentino Cave Registry (Catasto Grotte)
+# Project Plan v2: (UN)official Trentino Cave Registry (Catasto Grotte)
 > PoC — Simple, effective, free-stack. Optimised for vibe coding with Gemini CLI / Antigravity.
 
 ---
 
 ## 1. Project Goal
 
-Build a clean, working **Proof of Concept** for the official cave registry of the Trentino–Alto Adige region. The focus is on correctness and usability, not production hardening. Security is minimal and intentional for this stage.
+Build a clean, working **Proof of Concept** for an (un)official cave registry of the Trentino–Alto Adige region, created by enthusiasts. The focus is on correctness and usability, not production hardening. Security is minimal and intentional for this stage.
 
 The PoC must be fully functional: real data, real map, real logins — just not hardened for the open internet yet.
 
@@ -131,7 +131,7 @@ The source CSVs use Italian column names. The mapping to model fields is:
 
 | CSV column | Model field | Notes |
 | :--- | :--- | :--- |
-| `catasto` | `registry_id` | Official catasto code, unique identifier |
+| `catasto` | `registry_id` | Unique registry ID |
 | `Numero di placchetta` | `plaque_number` | Physical marker number on-site |
 | `Nome` | `name` | Cave name |
 | `Quota ingresso` | `elevation` | Entrance elevation in metres a.s.l. |
