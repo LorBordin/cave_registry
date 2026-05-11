@@ -387,3 +387,10 @@ frontend/src/pages/CaveMap.tsx
 **Deviations from spec:** Replaced static WMS legend images with a native React component that fetches legend data via JSON.
 **Assumptions:** Using ArcGIS REST API for legend data provides superior UX and styling control compared to standard WMS GetLegendGraphic.
 **Next session notes:** None
+
+## [2026-05-11 13:15] Phase 5 — Interactive Geology Identify and Slide-out Legend
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Implemented a slide-out legend panel and a real-time identify tooltip using WMS GetFeatureInfo.
+**Assumptions:** Throttled hover requests to 400ms to maintain performance while providing interactive feedback.
+**Next session notes:** None
