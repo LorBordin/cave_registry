@@ -14,10 +14,10 @@ const CaveMap = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
-  const geologiaWmsRef = useRef<L.TileLayer.WMS | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLegendOpen, setIsLegendOpen] = useState(false);
+  const [activeGeologyLayer, setActiveGeologyLayer] = useState<string | null>(null);
   const [hoverInfo, setHoverInfo] = useState<{ text: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -32,19 +32,26 @@ const CaveMap = () => {
       attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
     });
 
-    const geologiaWms = L.tileLayer.wms('https://geoservices.provincia.tn.it/agol/services/geologico/BDG00_ALL/MapServer/WMSServer?', {
-      layers: '1,3,5,23,24',
+    const geologiaTrentino = L.tileLayer.wms('https://geoservices.provincia.tn.it/agol/services/geologico/BDG12_Geologia/MapServer/WMSServer?', {
+      layers: '1,2,4,6',
       format: 'image/png',
       transparent: true,
       opacity: 0.7,
       attribution: '&copy; Provincia Autonoma di Trento'
     });
-    geologiaWmsRef.current = geologiaWms;
+
+    const geologiaBolzano = L.tileLayer.wms('https://geoservices1.civis.bz.it/geoserver/p_bz-Geology/ows?', {
+      layers: 'GeologicalUnitsOverview',
+      format: 'image/png',
+      transparent: true,
+      opacity: 0.7,
+      attribution: '&copy; Provincia Autonoma di Bolzano'
+    });
 
     // Initialize map
     const map = L.map(mapContainerRef.current, {
       layers: [osm],
-      center: [46.07, 11.12],
+      center: [46.30, 11.25], 
       zoom: 9
     });
     mapRef.current = map;
@@ -56,7 +63,8 @@ const CaveMap = () => {
     };
 
     const overlayMaps = {
-      "Geologia PAT": geologiaWms
+      "Geologia Regionale (Macro)": geologiaBolzano,
+      "Geologia Provincia di Trento": geologiaTrentino
     };
 
     L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
@@ -65,15 +73,28 @@ const CaveMap = () => {
     clusterGroupRef.current = clusterGroup;
     map.addLayer(clusterGroup);
 
+    // Track active geology layer with MUTUAL EXCLUSIVITY
+    map.on('overlayadd', (e: L.LayersControlEvent) => {
+      if (e.name === "Geologia Regionale (Macro)") {
+        if (map.hasLayer(geologiaTrentino)) map.removeLayer(geologiaTrentino);
+        setActiveGeologyLayer(e.name);
+      } else if (e.name === "Geologia Provincia di Trento") {
+        if (map.hasLayer(geologiaBolzano)) map.removeLayer(geologiaBolzano);
+        setActiveGeologyLayer(e.name);
+      }
+    });
+
+    map.on('overlayremove', (e: L.LayersControlEvent) => {
+      if (e.name.includes("Geologia")) {
+        setActiveGeologyLayer(null);
+      }
+    });
+
     // Dynamic Opacity based on Base Layer
     map.on('baselayerchange', (e: L.LayersControlEvent) => {
-      if (!geologiaWmsRef.current) return;
-      
-      if (e.name === "Satellite (Esri)") {
-        geologiaWmsRef.current.setOpacity(0.5);
-      } else {
-        geologiaWmsRef.current.setOpacity(0.7);
-      }
+      const opacity = e.name === "Satellite (Esri)" ? 0.5 : 0.7;
+      geologiaTrentino.setOpacity(opacity);
+      geologiaBolzano.setOpacity(opacity);
     });
 
     // Identify Hover Logic
@@ -81,12 +102,15 @@ const CaveMap = () => {
     const identifyThrottle = 400; // ms
 
     const onMouseMove = async (e: L.LeafletMouseEvent) => {
-      if (!geologiaWmsRef.current || !map.hasLayer(geologiaWmsRef.current)) {
+      const isBolzanoActive = map.hasLayer(geologiaBolzano);
+      const isTrentoActive = map.hasLayer(geologiaTrentino);
+
+      if (!isBolzanoActive && !isTrentoActive) {
         setHoverInfo(null);
         return;
       }
 
-      if (map.getZoom() < 12) {
+      if (map.getZoom() < 11) {
         setHoverInfo(null);
         return;
       }
@@ -101,28 +125,42 @@ const CaveMap = () => {
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
 
-      const url = `https://geoservices.provincia.tn.it/agol/services/geologico/BDG00_ALL/MapServer/WMSServer?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=1,3,5,23,24&LAYERS=1,3,5,23,24&INFO_FORMAT=application/geojson&I=${Math.floor(point.x)}&J=${Math.floor(point.y)}&WIDTH=${size.x}&HEIGHT=${size.y}&CRS=EPSG:4326&BBOX=${sw.lat},${sw.lng},${ne.lat},${ne.lng}`;
+      const getWmsUrl = (baseUrl: string, layers: string) => 
+        `${baseUrl}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=${layers}&LAYERS=${layers}&INFO_FORMAT=application/geojson&I=${Math.floor(point.x)}&J=${Math.floor(point.y)}&WIDTH=${size.x}&HEIGHT=${size.y}&CRS=EPSG:4326&BBOX=${sw.lat},${sw.lng},${ne.lat},${ne.lng}`;
 
       try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.features && data.features.length > 0) {
-          const props = data.features[0].properties;
-          const text = props.NOME || props.DESCRIZIONE || props.SIGLACARTOGRAFICA;
-          if (text) {
-            setHoverInfo({
-              text,
-              x: e.originalEvent.clientX,
-              y: e.originalEvent.clientY
-            });
-          } else {
-            setHoverInfo(null);
+        if (isBolzanoActive) {
+          const bzUrl = getWmsUrl('https://geoservices1.civis.bz.it/geoserver/p_bz-Geology/ows?', 'GeologicalUnitsOverview');
+          const bzResponse = await fetch(bzUrl);
+          const bzData = await bzResponse.json();
+          
+          if (bzData.features && bzData.features.length > 0) {
+            const props = bzData.features[0].properties;
+            const text = props.LEG_IT || props.LEG_DE;
+            if (text) {
+              setHoverInfo({ text, x: e.originalEvent.clientX, y: e.originalEvent.clientY });
+              return;
+            }
           }
-        } else {
-          setHoverInfo(null);
         }
-      } catch (err) {
-        console.error('Error fetching feature info:', err);
+
+        if (isTrentoActive) {
+          const tnUrl = getWmsUrl('https://geoservices.provincia.tn.it/agol/services/geologico/BDG12_Geologia/MapServer/WMSServer?', '1,2,4,6');
+          const tnResponse = await fetch(tnUrl);
+          const tnData = await tnResponse.json();
+          
+          if (tnData.features && tnData.features.length > 0) {
+            const props = tnData.features[0].properties;
+            const text = props.NOME || props.DESCRIZIONE || props.SIGLACARTOGRAFICA;
+            if (text) {
+              setHoverInfo({ text, x: e.originalEvent.clientX, y: e.originalEvent.clientY });
+              return;
+            }
+          }
+        }
+
+        setHoverInfo(null);
+      } catch {
         setHoverInfo(null);
       }
     };
@@ -268,7 +306,7 @@ const CaveMap = () => {
         </div>
 
         <div className="flex-1 overflow-auto p-6 bg-white">
-          <GeologyLegend />
+          <GeologyLegend activeLayer={activeGeologyLayer} />
         </div>
         
         <div className="p-4 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 leading-normal">

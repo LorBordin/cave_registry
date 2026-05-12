@@ -401,3 +401,26 @@ frontend/src/pages/CaveMap.tsx
 **Deviations from spec:** Added a listener to change geology layer opacity between 0.5 (Satellite) and 0.7 (OSM).
 **Assumptions:** None
 **Next session notes:** None
+
+## [2026-05-11 13:35] Phase 5 — Full Regional Geology Coverage (TN + BZ)
+**Files:**
+frontend/src/pages/CaveMap.tsx
+frontend/src/components/GeologyLegend.tsx
+**Deviations from spec:** Integrated the Alto Adige (Bolzano) geological WMS service and updated the legend and hover identify logic to support both provinces.
+**Assumptions:** Unified "Geologia Regionale" toggle is better for UX than separate provincial toggles.
+**Next session notes:** None
+
+## [2026-05-11 14:30] Phase 5 — Separated Mutually Exclusive Geology Layers
+**Files:**
+frontend/src/pages/CaveMap.tsx
+frontend/src/components/GeologyLegend.tsx
+**Deviations from spec:** Separated Bolzano (Macro) and Trentino (Detail) into independent, mutually exclusive overlays. Implemented dynamic legend switching to match the active map layer.
+**Assumptions:** Mutual exclusivity improves clarity by preventing visual and conceptual overlap between different geological contexts.
+**Next session notes:** None
+
+## [2026-05-11 15:00] Phase 5 — Fixed Bolzano Legend Structure
+**Files:**
+frontend/src/components/GeologyLegend.tsx
+**Deviations from spec:** Corrected the data mapping for Bolzano's GeoServer legend which uses a different JSON structure than Trentino's ArcGIS server.
+**Assumptions:** Using hex colors from GeoServer rules to render custom color swatches for Bolzano's macro-units.
+**Next session notes:** None

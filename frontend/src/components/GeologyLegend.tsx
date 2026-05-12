@@ -1,39 +1,60 @@
 import React, { useEffect, useState } from 'react';
 
-interface LegendItem {
+interface TnLegendItem {
   label: string;
   imageData: string;
   contentType: string;
-  height: number;
-  width: number;
 }
 
-interface LegendLayer {
-  layerId: number;
+interface TnLegendLayer {
+  layerId: string | number;
   layerName: string;
-  legend: LegendItem[];
+  legend: TnLegendItem[];
 }
 
-interface LegendData {
-  layers: LegendLayer[];
+interface TnLegendData {
+  layers: TnLegendLayer[];
 }
 
-const TARGET_LAYERS = [28, 26, 24, 5, 4];
+interface BzLegendRule {
+  title: string;
+  symbolizers: Array<{
+    Polygon?: { fill: string };
+    Line?: { stroke: string };
+    Point?: { fill: string };
+  }>;
+}
 
-const GeologyLegend: React.FC = () => {
-  const [data, setData] = useState<LegendData | null>(null);
+interface BzLegendData {
+  Legend: Array<{
+    layerName: string;
+    rules: BzLegendRule[];
+  }>;
+}
+
+interface GeologyLegendProps {
+  activeLayer: string | null;
+}
+
+const GeologyLegend: React.FC<GeologyLegendProps> = ({ activeLayer }) => {
+  const [tnData, setTnData] = useState<TnLegendData | null>(null);
+  const [bzData, setBzData] = useState<BzLegendData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchLegend = async () => {
+    const fetchLegends = async () => {
       try {
-        const response = await fetch(
-          'https://geoservices.provincia.tn.it/agol/rest/services/geologico/BDG00_ALL/MapServer/legend?f=pjson'
-        );
-        if (!response.ok) throw new Error('Fallito il caricamento della legenda');
-        const json = await response.json();
-        setData(json);
+        const [tnRes, bzRes] = await Promise.all([
+          fetch('https://geoservices.provincia.tn.it/agol/rest/services/geologico/BDG12_Geologia/MapServer/legend?f=pjson'),
+          fetch('https://geoservices1.civis.bz.it/geoserver/p_bz-Geology/ows?service=WMS&version=1.3.0&request=GetLegendGraphic&format=application/json&layer=GeologicalUnitsOverview')
+        ]);
+
+        if (!tnRes.ok || !bzRes.ok) throw new Error('Fallito il caricamento della legenda');
+
+        const [tnJson, bzJson] = await Promise.all([tnRes.json(), bzRes.json()]);
+        setTnData(tnJson);
+        setBzData(bzJson);
       } catch (err) {
         console.error(err);
         setError('Errore nel caricamento della legenda.');
@@ -42,14 +63,13 @@ const GeologyLegend: React.FC = () => {
       }
     };
 
-    fetchLegend();
+    fetchLegends();
   }, []);
 
   const formatLabel = (label: string) => {
     if (!label) return '';
-    // Basic title case: lowercase all, then capitalize first letter of each word
-    // (or just first letter of sentence for better geological naming)
-    const lower = label.toLowerCase();
+    const clean = label.replace(/^[A-Z0-9]+\s*-\s*/, ''); // Remove codes
+    const lower = clean.toLowerCase();
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
 
@@ -62,40 +82,121 @@ const GeologyLegend: React.FC = () => {
     );
   }
 
-  if (error || !data) {
-    return <div className="p-4 text-xs text-red-500 font-medium">{error || 'Dati non disponibili'}</div>;
+  if (error || !tnData || !bzData) {
+    return <div className="p-4 text-xs text-red-500 font-medium">{error || 'Dati della legenda non disponibili'}</div>;
   }
 
-  const filteredLayers = data.layers
-    .filter((l) => TARGET_LAYERS.includes(l.layerId))
-    .sort((a, b) => TARGET_LAYERS.indexOf(a.layerId) - TARGET_LAYERS.indexOf(b.layerId));
+  // AGGREGATION for Trentino
+  const categories = [
+    {
+      title: "Rocce Carbonatiche (Carsificabili)",
+      description: "Calcari e dolomie ad alta potenzialità carsica.",
+      color: "bg-blue-500",
+      items: (tnData.layers.find(l => l.layerName === "SUBSTRATO")?.legend?.filter(i => /calcari|dolom|carbonat/i.test(i.label)) || [])
+    },
+    {
+      title: "Rocce Magmatiche e Vulcaniche",
+      description: "Porfidi, graniti e lave (non carsificabili).",
+      color: "bg-red-500",
+      items: (tnData.layers.find(l => l.layerName === "SUBSTRATO")?.legend?.filter(i => /vulc|pluton|granit|porfidi/i.test(i.label)) || [])
+    },
+    {
+      title: "Rocce Metamorfiche",
+      description: "Gneiss, micascisti e filladi.",
+      color: "bg-purple-500",
+      items: (tnData.layers.find(l => l.layerName === "SUBSTRATO")?.legend?.filter(i => /metam|gneiss|scisti|fillad/i.test(i.label)) || [])
+    },
+    {
+      title: "Coperture Quaternarie",
+      description: "Alluvioni, detriti e depositi glaciali.",
+      color: "bg-yellow-500",
+      items: (tnData.layers.find(l => l.layerName === "DEPOSITI QUATERNARI")?.legend || [])
+    }
+  ];
+
+  // Map Bolzano rules
+  const bzRules = bzData.Legend?.[0]?.rules || [];
 
   return (
-    <div className="space-y-8">
-      {filteredLayers.map((layer) => (
-        <section key={layer.layerId} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <h4 className="text-[13px] font-extrabold text-slate-800 uppercase tracking-widest mb-4 border-b-2 border-slate-100 pb-2 flex items-center">
-            <span className="w-2 h-2 bg-teal-500 rounded-full mr-2"></span>
-            {layer.layerName}
-          </h4>
+    <div className="space-y-10">
+      {!activeLayer && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4 shadow-inner">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+          </div>
+          <p className="text-sm font-bold text-slate-700">Legenda non attiva</p>
+          <p className="text-xs text-slate-400 mt-2 px-6">
+            Seleziona un livello geologico dal menu in alto a destra per esplorarne i dettagli.
+          </p>
+        </div>
+      )}
+
+      {activeLayer === "Geologia Regionale (Macro)" && (
+        <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="mb-6 bg-slate-900 text-white px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest inline-block">
+            Legenda Regionale Semplificata (BZ)
+          </div>
           <div className="space-y-4">
-            {layer.legend.map((item, idx) => (
-              <div key={idx} className="flex items-start group">
-                <div className="shrink-0 mr-4 pt-0.5">
-                  <img
-                    src={`data:${item.contentType};base64,${item.imageData}`}
-                    alt={item.label}
-                    className="w-6 h-6 object-contain shadow-sm rounded-sm group-hover:scale-110 transition-transform"
-                  />
+            {bzRules.map((rule, idx) => {
+              const fillColor = rule.symbolizers?.[0]?.Polygon?.fill || '#CCC';
+              return (
+                <div key={idx} className="flex items-start group">
+                  <div className="shrink-0 mr-3 pt-0.5">
+                    <div 
+                      className="w-5 h-5 rounded-sm shadow-sm border border-slate-200"
+                      style={{ backgroundColor: fillColor }}
+                    />
+                  </div>
+                  <div className="text-[13px] leading-snug text-slate-600 group-hover:text-slate-900 transition-colors">
+                    {formatLabel(rule.title)}
+                  </div>
                 </div>
-                <div className="text-[14px] leading-relaxed text-slate-700 font-medium group-hover:text-slate-900 transition-colors">
-                  {formatLabel(item.label)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
-      ))}
+      )}
+
+      {activeLayer === "Geologia Provincia di Trento" && (
+        <div className="space-y-10">
+          <div className="bg-teal-50 border border-teal-100 p-3 rounded-lg text-[11px] text-teal-800 leading-relaxed shadow-sm">
+            <strong>Dettaglio Trento:</strong> Le unità sono aggregate per facilitare l'identificazione delle aree carsificabili.
+          </div>
+
+          {categories.map((cat, idx) => (
+            cat.items.length > 0 && (
+              <section key={idx} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="mb-4">
+                  <h4 className="text-[13px] font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
+                    <span className={`w-3 h-3 ${cat.color} rounded-sm mr-2 shadow-sm`}></span>
+                    {cat.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-1 italic">{cat.description}</p>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-y-3 pl-5 border-l-2 border-slate-100">
+                  {Array.from(new Map(cat.items.map(item => [item.label, item])).values()).map((item, iidx) => (
+                    <div key={iidx} className="flex items-start group">
+                      <div className="shrink-0 mr-3 pt-0.5">
+                        <img
+                          src={`data:${item.contentType};base64,${item.imageData}`}
+                          alt={item.label}
+                          className="w-5 h-5 object-contain shadow-sm rounded-sm"
+                        />
+                      </div>
+                      <div className="text-[13px] leading-snug text-slate-600 group-hover:text-slate-900 transition-colors">
+                        {formatLabel(item.label)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )
+          ))}
+        </div>
+      )}
     </div>
   );
 };
