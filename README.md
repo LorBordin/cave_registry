@@ -129,7 +129,7 @@ Example CSV (`data/caves_sample.csv`):
 We are continuously looking to improve the registry. The following features are planned for future development:
 
 ### Map & Visualization
-- [ ] **Geology Layers:** Integration of official WMS geological maps (e.g., PAT) for terrain analysis.
+- [x] **Geology Layers:** Integration of official WMS geological maps (e.g., PAT) for terrain analysis.
 - [ ] **Interactive Map Filters:** Dynamic UI to filter caves on the map by depth, length, or elevation.
 - [ ] **3D View:** Implementation of true 3D terrain and camera tilt (MapLibre GL or CesiumJS).
 - [ ] **3D Survey Viewer:** Interactive web viewer for digital cave surveys (Therion/Compass files).
