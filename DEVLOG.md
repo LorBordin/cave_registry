@@ -1,5 +1,12 @@
 # Devlog
 
+## [2026-05-12 10:45] Execution — Mutually Exclusive Geological Layers
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Using `setTimeout` to ensure Leaflet's internal state and UI (checkboxes) stay in sync when programmatically removing layers during an `overlayadd` event.
+**Next session notes:** None
+
 ## [2026-05-10 16:30] Phase 5 — Completed
 **Files:**
 backend/caves/views.py
@@ -418,9 +425,23 @@ frontend/src/components/GeologyLegend.tsx
 **Assumptions:** Mutual exclusivity improves clarity by preventing visual and conceptual overlap between different geological contexts.
 **Next session notes:** None
 
+## [2026-05-11 15:00] Phase 5 — Fixed Bolzano Legend Structure
+**Files:**
+frontend/src/components/GeologyLegend.tsx
+**Deviations from spec:** Corrected the data mapping for Bolzano's GeoServer legend which uses a different JSON structure than Trentino's ArcGIS server.
+**Assumptions:** Using hex colors from GeoServer rules to render custom color swatches for Bolzano's macro-units.
+**Next session notes:** None
+
 ## [2026-05-12 10:15] Execution — Improve Bolzano Geology Legend
 **Files:**
 frontend/src/components/GeologyLegend.tsx
 **Deviations from spec:** None
 **Assumptions:** BZ legend titles follow the "German - Italian" format. Speleological grouping is based on keywords like "sedimentaria", "plutoni", "quaternari".
+**Next session notes:** None
+
+## [2026-05-12 10:30] Execution — Improve Bolzano Geology Hover
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** Switched BZ GetFeatureInfo to WMS 1.1.1 for better compatibility with GeoServer (corrects BBOX order and coordinate parameters).
+**Assumptions:** BZ GeoServer returns GeoJSON for `INFO_FORMAT=application/json`. Properties `LEG_IT` and `LEG_DE` are used for layer identification.
 **Next session notes:** None

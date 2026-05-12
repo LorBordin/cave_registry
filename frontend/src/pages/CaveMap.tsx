@@ -76,17 +76,28 @@ const CaveMap = () => {
     // Track active geology layer with MUTUAL EXCLUSIVITY
     map.on('overlayadd', (e: L.LayersControlEvent) => {
       if (e.name === "Geologia Regionale (Macro)") {
-        if (map.hasLayer(geologiaTrentino)) map.removeLayer(geologiaTrentino);
+        if (map.hasLayer(geologiaTrentino)) {
+          // Use setTimeout to ensure the UI updates correctly and unticks the other checkbox
+          setTimeout(() => map.removeLayer(geologiaTrentino), 0);
+        }
         setActiveGeologyLayer(e.name);
       } else if (e.name === "Geologia Provincia di Trento") {
-        if (map.hasLayer(geologiaBolzano)) map.removeLayer(geologiaBolzano);
+        if (map.hasLayer(geologiaBolzano)) {
+          setTimeout(() => map.removeLayer(geologiaBolzano), 0);
+        }
         setActiveGeologyLayer(e.name);
       }
     });
 
     map.on('overlayremove', (e: L.LayersControlEvent) => {
-      if (e.name.includes("Geologia")) {
-        setActiveGeologyLayer(null);
+      if (e.name === "Geologia Regionale (Macro)" || e.name === "Geologia Provincia di Trento") {
+        // Only set to null if BOTH are actually removed from the map
+        // This prevents flicker when switching between them
+        const isBzActive = map.hasLayer(geologiaBolzano);
+        const isTnActive = map.hasLayer(geologiaTrentino);
+        if (!isBzActive && !isTnActive) {
+          setActiveGeologyLayer(null);
+        }
       }
     });
 
@@ -110,7 +121,8 @@ const CaveMap = () => {
         return;
       }
 
-      if (map.getZoom() < 11) {
+      // Allow hover at slightly lower zoom for macro context
+      if (map.getZoom() < 10) {
         setHoverInfo(null);
         return;
       }
@@ -125,19 +137,23 @@ const CaveMap = () => {
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
 
-      const getWmsUrl = (baseUrl: string, layers: string) => 
-        `${baseUrl}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=${layers}&LAYERS=${layers}&INFO_FORMAT=application/geojson&I=${Math.floor(point.x)}&J=${Math.floor(point.y)}&WIDTH=${size.x}&HEIGHT=${size.y}&CRS=EPSG:4326&BBOX=${sw.lat},${sw.lng},${ne.lat},${ne.lng}`;
-
       try {
         if (isBolzanoActive) {
-          const bzUrl = getWmsUrl('https://geoservices1.civis.bz.it/geoserver/p_bz-Geology/ows?', 'GeologicalUnitsOverview');
+          // BZ GeoServer works better with WMS 1.1.1 and X/Y coordinates
+          const bzUrl = `https://geoservices1.civis.bz.it/geoserver/p_bz-Geology/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&LAYERS=GeologicalUnitsOverview&QUERY_LAYERS=GeologicalUnitsOverview&X=${Math.floor(point.x)}&Y=${Math.floor(point.y)}&WIDTH=${size.x}&HEIGHT=${size.y}&SRS=EPSG:4326&BBOX=${sw.lng},${sw.lat},${ne.lng},${ne.lat}&INFO_FORMAT=application/json`;
+          
           const bzResponse = await fetch(bzUrl);
           const bzData = await bzResponse.json();
           
           if (bzData.features && bzData.features.length > 0) {
             const props = bzData.features[0].properties;
-            const text = props.LEG_IT || props.LEG_DE;
+            let text = props.LEG_IT || props.LEG_DE;
             if (text) {
+              // Clean any potential bilingual labels
+              if (text.includes(' - ')) {
+                const parts = text.split(' - ');
+                text = parts.length > 1 ? parts[1] : text;
+              }
               setHoverInfo({ text, x: e.originalEvent.clientX, y: e.originalEvent.clientY });
               return;
             }
@@ -145,7 +161,9 @@ const CaveMap = () => {
         }
 
         if (isTrentoActive) {
-          const tnUrl = getWmsUrl('https://geoservices.provincia.tn.it/agol/services/geologico/BDG12_Geologia/MapServer/WMSServer?', '1,2,4,6');
+          // TN ArcGIS server expects 1.3.0 and I/J coordinates
+          const tnUrl = `https://geoservices.provincia.tn.it/agol/services/geologico/BDG12_Geologia/MapServer/WMSServer?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=1,2,4,6&LAYERS=1,2,4,6&INFO_FORMAT=application/geojson&I=${Math.floor(point.x)}&J=${Math.floor(point.y)}&WIDTH=${size.x}&HEIGHT=${size.y}&CRS=EPSG:4326&BBOX=${sw.lat},${sw.lng},${ne.lat},${ne.lng}`;
+          
           const tnResponse = await fetch(tnUrl);
           const tnData = await tnResponse.json();
           
@@ -160,7 +178,8 @@ const CaveMap = () => {
         }
 
         setHoverInfo(null);
-      } catch {
+      } catch (err) {
+        console.warn('Identify error:', err);
         setHoverInfo(null);
       }
     };
