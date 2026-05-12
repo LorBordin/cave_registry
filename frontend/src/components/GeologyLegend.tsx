@@ -68,6 +68,11 @@ const GeologyLegend: React.FC<GeologyLegendProps> = ({ activeLayer }) => {
 
   const formatLabel = (label: string) => {
     if (!label) return '';
+    // Handle Bolzano format "German - Italian"
+    if (label.includes(' - ') && !/^[A-Z0-9]+\s*-\s*/.test(label)) {
+      const parts = label.split(' - ');
+      label = parts.length > 1 ? parts[1] : label;
+    }
     const clean = label.replace(/^[A-Z0-9]+\s*-\s*/, ''); // Remove codes
     const lower = clean.toLowerCase();
     return lower.charAt(0).toUpperCase() + lower.slice(1);
@@ -86,8 +91,11 @@ const GeologyLegend: React.FC<GeologyLegendProps> = ({ activeLayer }) => {
     return <div className="p-4 text-xs text-red-500 font-medium">{error || 'Dati della legenda non disponibili'}</div>;
   }
 
+  // Map Bolzano rules
+  const bzRules = bzData.Legend?.[0]?.rules || [];
+
   // AGGREGATION for Trentino
-  const categories = [
+  const tnCategories = [
     {
       title: "Rocce Carbonatiche (Carsificabili)",
       description: "Calcari e dolomie ad alta potenzialità carsica.",
@@ -114,8 +122,33 @@ const GeologyLegend: React.FC<GeologyLegendProps> = ({ activeLayer }) => {
     }
   ];
 
-  // Map Bolzano rules
-  const bzRules = bzData.Legend?.[0]?.rules || [];
+  // AGGREGATION for Bolzano
+  const bzCategories = [
+    {
+      title: "Rocce Carbonatiche (Carsificabili)",
+      description: "Successioni sedimentarie a prevalenza carbonatica.",
+      color: "bg-blue-500",
+      rules: bzRules.filter(r => /sedimentaria|elvetiche|calcaree/i.test(r.title))
+    },
+    {
+      title: "Rocce Magmatiche e Vulcaniche",
+      description: "Plutoni e complessi vulcanici (non carsificabili).",
+      color: "bg-red-500",
+      rules: bzRules.filter(r => /plutoni|vulcaniti|vulcanoclastiti/i.test(r.title))
+    },
+    {
+      title: "Rocce Metamorfiche",
+      description: "Basamento cristallino, gneiss e filladi.",
+      color: "bg-purple-500",
+      rules: bzRules.filter(r => !/sedimentaria|elvetiche|calcaree|plutoni|vulcaniti|vulcanoclastiti|quaternari|molassa/i.test(r.title))
+    },
+    {
+      title: "Coperture Quaternarie",
+      description: "Depositi glaciali, alluvionali e molassa.",
+      color: "bg-yellow-500",
+      rules: bzRules.filter(r => /quaternari|molassa/i.test(r.title))
+    }
+  ];
 
   return (
     <div className="space-y-10">
@@ -134,29 +167,44 @@ const GeologyLegend: React.FC<GeologyLegendProps> = ({ activeLayer }) => {
       )}
 
       {activeLayer === "Geologia Regionale (Macro)" && (
-        <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="mb-6 bg-slate-900 text-white px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest inline-block">
-            Legenda Regionale Semplificata (BZ)
+        <div className="space-y-10">
+          <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg text-[11px] text-slate-300 leading-relaxed shadow-sm">
+            <strong className="text-white">Dettaglio Bolzano (Semplificato):</strong> Le unità regionali sono raggruppate per tipologia litologica.
           </div>
-          <div className="space-y-4">
-            {bzRules.map((rule, idx) => {
-              const fillColor = rule.symbolizers?.[0]?.Polygon?.fill || '#CCC';
-              return (
-                <div key={idx} className="flex items-start group">
-                  <div className="shrink-0 mr-3 pt-0.5">
-                    <div 
-                      className="w-5 h-5 rounded-sm shadow-sm border border-slate-200"
-                      style={{ backgroundColor: fillColor }}
-                    />
-                  </div>
-                  <div className="text-[13px] leading-snug text-slate-600 group-hover:text-slate-900 transition-colors">
-                    {formatLabel(rule.title)}
-                  </div>
+
+          {bzCategories.map((cat, idx) => (
+            cat.rules.length > 0 && (
+              <section key={idx} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="mb-4">
+                  <h4 className="text-[13px] font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
+                    <span className={`w-3 h-3 ${cat.color} rounded-sm mr-2 shadow-sm`}></span>
+                    {cat.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-1 italic">{cat.description}</p>
                 </div>
-              );
-            })}
-          </div>
-        </section>
+                
+                <div className="grid grid-cols-1 gap-y-3 pl-5 border-l-2 border-slate-100">
+                  {cat.rules.map((rule, ridx) => {
+                    const fillColor = rule.symbolizers?.[0]?.Polygon?.fill || '#CCC';
+                    return (
+                      <div key={ridx} className="flex items-start group">
+                        <div className="shrink-0 mr-3 pt-0.5">
+                          <div 
+                            className="w-5 h-5 rounded-sm shadow-sm border border-slate-200"
+                            style={{ backgroundColor: fillColor }}
+                          />
+                        </div>
+                        <div className="text-[13px] leading-snug text-slate-600 group-hover:text-slate-900 transition-colors">
+                          {formatLabel(rule.title)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )
+          ))}
+        </div>
       )}
 
       {activeLayer === "Geologia Provincia di Trento" && (
@@ -165,7 +213,7 @@ const GeologyLegend: React.FC<GeologyLegendProps> = ({ activeLayer }) => {
             <strong>Dettaglio Trento:</strong> Le unità sono aggregate per facilitare l'identificazione delle aree carsificabili.
           </div>
 
-          {categories.map((cat, idx) => (
+          {tnCategories.map((cat, idx) => (
             cat.items.length > 0 && (
               <section key={idx} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div className="mb-4">

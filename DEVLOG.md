@@ -418,9 +418,9 @@ frontend/src/components/GeologyLegend.tsx
 **Assumptions:** Mutual exclusivity improves clarity by preventing visual and conceptual overlap between different geological contexts.
 **Next session notes:** None
 
-## [2026-05-11 15:00] Phase 5 — Fixed Bolzano Legend Structure
+## [2026-05-12 10:15] Execution — Improve Bolzano Geology Legend
 **Files:**
 frontend/src/components/GeologyLegend.tsx
-**Deviations from spec:** Corrected the data mapping for Bolzano's GeoServer legend which uses a different JSON structure than Trentino's ArcGIS server.
-**Assumptions:** Using hex colors from GeoServer rules to render custom color swatches for Bolzano's macro-units.
+**Deviations from spec:** None
+**Assumptions:** BZ legend titles follow the "German - Italian" format. Speleological grouping is based on keywords like "sedimentaria", "plutoni", "quaternari".
 **Next session notes:** None
