@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
@@ -7,18 +7,94 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { fetchCaveGeoJson } from '../api/caves';
 import { fixLeafletIcon } from '../utils/leafletIconFix';
 import GeologyLegend from '../components/GeologyLegend';
+import MapFilters, { type FilterParams } from '../components/MapFilters';
 
 fixLeafletIcon();
+
+const INITIAL_FILTERS: FilterParams = {
+  minElevation: '',
+  maxElevation: '',
+  minLength: '',
+  maxLength: '',
+  minDepth: '',
+  maxDepth: '',
+};
 
 const CaveMap = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+  const originalGeoJsonRef = useRef<GeoJSON.FeatureCollection | null>(null);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLegendOpen, setIsLegendOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterParams, setFilterParams] = useState<FilterParams>(INITIAL_FILTERS);
   const [activeGeologyLayer, setActiveGeologyLayer] = useState<string | null>(null);
   const [hoverInfo, setHoverInfo] = useState<{ text: string; x: number; y: number } | null>(null);
+
+  // Apply filters to the map markers
+  const applyFilters = useCallback(() => {
+    if (!originalGeoJsonRef.current || !clusterGroupRef.current) return;
+
+    const { minElevation, maxElevation, minLength, maxLength, minDepth, maxDepth } = filterParams;
+
+    const filteredFeatures = (originalGeoJsonRef.current.features as GeoJSON.Feature[]).filter((feature) => {
+      const props = feature.properties as Record<string, number | null>;
+      const { elevation, length, depth_negative } = props;
+
+      if (minElevation && (elevation === null || elevation < parseFloat(minElevation))) return false;
+      if (maxElevation && (elevation === null || elevation > parseFloat(maxElevation))) return false;
+      
+      if (minLength && (length === null || length < parseFloat(minLength))) return false;
+      if (maxLength && (length === null || length > parseFloat(maxLength))) return false;
+      
+      if (minDepth && (depth_negative === null || Math.abs(depth_negative) < parseFloat(minDepth))) return false;
+      if (maxDepth && (depth_negative === null || Math.abs(depth_negative) > parseFloat(maxDepth))) return false;
+
+      return true;
+    });
+
+    const filteredGeoJson: GeoJSON.FeatureCollection = {
+      ...originalGeoJsonRef.current,
+      features: filteredFeatures
+    };
+
+    clusterGroupRef.current.clearLayers();
+    
+    const geoJsonLayer = L.geoJSON(filteredGeoJson, {
+      pointToLayer: (feature, latlng) => {
+        const marker = L.marker(latlng);
+        const { name, registry_id, elevation, length, depth_positive, depth_negative } = feature.properties;
+        
+        const popupContent = `
+          <div class="p-1">
+            <div class="font-bold text-base mb-1 text-slate-900">${name}</div>
+            <div class="text-xs text-slate-600 mb-0.5">Catasto: <span class="font-mono">${registry_id}</span></div>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11px] text-slate-600 mt-2">
+              <div>Quota: <span class="font-semibold text-slate-800">${elevation ? elevation + ' m' : '—'}</span></div>
+              <div>Sviluppo: <span class="font-semibold text-slate-800">${length ? length + ' m' : '—'}</span></div>
+              <div>Dislivello+: <span class="font-semibold text-slate-800">${depth_positive ? depth_positive + ' m' : '—'}</span></div>
+              <div>Dislivello-: <span class="font-semibold text-slate-800">${depth_negative ? depth_negative + ' m' : '—'}</span></div>
+            </div>
+            <div class="pt-2 mt-2 border-t border-slate-200">
+              <a href="/caves/${registry_id}" style="color: #2dd4bf;" class="font-semibold text-xs hover:underline transition-colors">Dettagli →</a>
+            </div>
+          </div>
+        `;
+        
+        marker.bindPopup(popupContent);
+        return marker;
+      }
+    });
+
+    clusterGroupRef.current.addLayer(geoJsonLayer);
+  }, [filterParams]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -191,34 +267,10 @@ const CaveMap = () => {
       setLoading(true);
       try {
         const geojson = await fetchCaveGeoJson();
-        
-        const geoJsonLayer = L.geoJSON(geojson, {
-          pointToLayer: (feature, latlng) => {
-            const marker = L.marker(latlng);
-            const { name, registry_id, elevation, length, depth_positive, depth_negative } = feature.properties;
-            
-            const popupContent = `
-              <div class="p-1">
-                <div class="font-bold text-base mb-1 text-slate-900">${name}</div>
-                <div class="text-xs text-slate-600 mb-0.5">Catasto: <span class="font-mono">${registry_id}</span></div>
-                <div class="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11px] text-slate-600 mt-2">
-                  <div>Quota: <span class="font-semibold text-slate-800">${elevation ? elevation + ' m' : '—'}</span></div>
-                  <div>Sviluppo: <span class="font-semibold text-slate-800">${length ? length + ' m' : '—'}</span></div>
-                  <div>Dislivello+: <span class="font-semibold text-slate-800">${depth_positive ? depth_positive + ' m' : '—'}</span></div>
-                  <div>Dislivello-: <span class="font-semibold text-slate-800">${depth_negative ? depth_negative + ' m' : '—'}</span></div>
-                </div>
-                <div class="pt-2 mt-2 border-t border-slate-200">
-                  <a href="/caves/${registry_id}" style="color: #2dd4bf;" class="font-semibold text-xs hover:underline transition-colors">Dettagli →</a>
-                </div>
-              </div>
-            `;
-            
-            marker.bindPopup(popupContent);
-            return marker;
-          }
-        });
-
-        clusterGroup.addLayer(geoJsonLayer);
+        originalGeoJsonRef.current = geojson;
+        // Direct call to avoid dependency loop in initial load if needed, 
+        // but useEffect [applyFilters] will handle it when originalGeoJsonRef is set.
+        applyFilters(); 
         setError(null);
       } catch (err) {
         setError('Errore nel caricamento dei dati.');
@@ -243,6 +295,22 @@ const CaveMap = () => {
         <div className="absolute inset-0 z-0">
           <div ref={mapContainerRef} className="h-full w-full" />
         </div>
+
+        {/* Filter Toggle Button */}
+        {!isFilterOpen && (
+          <div className="absolute bottom-6 left-6 z-[1000]">
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="px-4 py-2 bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 rounded-lg shadow-lg flex items-center space-x-2 transition-colors"
+              title="Apri Filtri"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <span className="font-bold text-sm">Filtri</span>
+            </button>
+          </div>
+        )}
 
         {/* Legend Toggle Button */}
         {!isLegendOpen && (
@@ -296,6 +364,41 @@ const CaveMap = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Slide-out Filter Panel */}
+      <div 
+        className={`fixed top-16 left-0 bottom-0 w-80 md:w-96 bg-slate-50 border-r border-slate-200 flex flex-col shadow-2xl z-[1001] transition-transform duration-300 ease-in-out ${
+          isFilterOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              Filtri Mappa
+            </h3>
+            <p className="text-[10px] text-slate-500 italic mt-1 uppercase tracking-tight">Filtra le grotte per parametri tecnici</p>
+          </div>
+          <button 
+            onClick={() => setIsFilterOpen(false)}
+            className="p-1.5 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-auto p-6 bg-white">
+          <MapFilters 
+            filters={filterParams} 
+            onFilterChange={setFilterParams} 
+            onReset={() => setFilterParams(INITIAL_FILTERS)} 
+          />
+        </div>
       </div>
 
       {/* Slide-out Legend Panel */}

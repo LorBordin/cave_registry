@@ -445,3 +445,39 @@ frontend/src/pages/CaveMap.tsx
 **Deviations from spec:** Switched BZ GetFeatureInfo to WMS 1.1.1 for better compatibility with GeoServer (corrects BBOX order and coordinate parameters).
 **Assumptions:** BZ GeoServer returns GeoJSON for `INFO_FORMAT=application/json`. Properties `LEG_IT` and `LEG_DE` are used for layer identification.
 **Next session notes:** None
+
+## [2026-05-13 14:30] Execution — Interactive Map Filters
+**Files:**
+frontend/src/components/MapFilters.tsx
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Frontend filtering is performed on the GeoJSON features array stored in a ref to avoid redundant API calls. Caves with null values for a filtered property are excluded when that filter is active.
+**Next session notes:** None
+
+## [2026-05-13 14:45] Bugfix — SyntaxError in CaveMap.tsx imports
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Fixed a SyntaxError caused by 'verbatimModuleSyntax: true' in tsconfig.app.json, which requires explicit 'type' modifiers for type-only imports when mixed with value imports.
+**Next session notes:** None
+
+## [2026-05-13 15:00] Bugfix — Filter state reset and map flickering
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** The map re-initialization was being triggered on every filter change because 'applyFilters' was a dependency of the main 'useEffect'. Decoupled them to allow markers to update without recreating the Leaflet map instance.
+**Next session notes:** None
+
+## [2026-05-13 15:15] Bugfix — Invisible text in filter inputs
+**Files:**
+frontend/src/components/MapFilters.tsx
+**Deviations from spec:** None
+**Assumptions:** The global 'text-white' style on the body was causing the input text to be invisible against the light-colored input background. Explicitly set 'text-slate-900' on the input fields.
+**Next session notes:** None
+
+## [2026-05-13 15:30] Execution — UI Polish for Map Filters
+**Files:**
+frontend/src/pages/CaveMap.tsx
+**Deviations from spec:** None
+**Assumptions:** Moved the 'Filtri' button to the bottom-left to avoid overlap with Leaflet zoom controls and improve UI balance.
+**Next session notes:** Feature complete and verified.
